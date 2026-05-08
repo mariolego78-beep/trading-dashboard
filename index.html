@@ -409,10 +409,40 @@
           <tbody id="monthly-tbody"></tbody>
         </table>
       </div>
-      <!-- PANNELLO DESTRA: placeholder, riempire con contenuto scelto -->
+      <!-- PANNELLO DESTRA: heatmap rendimenti per anno/mese -->
       <div id="mensile-right" style="display:flex; flex-direction:column; gap:10px;">
-        <div class="metric-card" style="flex:1; display:flex; align-items:center; justify-content:center; border-style:dashed; opacity:0.4;">
-          <div style="font-family:var(--mono); font-size:11px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase;">— prossimamente —</div>
+        <div class="chart-card" style="margin-top:0; flex:1;">
+          <div class="chart-header" style="margin-bottom:14px;">
+            <div class="chart-title">Heatmap rendimenti mensili</div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <button class="chart-tab active" onclick="setHeatmapMode('rend', this)" id="hm-btn-rend">Rendimento</button>
+              <button class="chart-tab" onclick="setHeatmapMode('dd', this)" id="hm-btn-dd">Drawdown</button>
+            </div>
+          </div>
+          <div id="heatmap-container" style="overflow-x:auto;"></div>
+          <div style="margin-top:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.1em;">SCALA:</span>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <div style="width:14px; height:14px; border-radius:3px; background:#6b0f0f;"></div>
+              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">forte neg</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <div style="width:14px; height:14px; border-radius:3px; background:#e08080;"></div>
+              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">lieve neg</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <div style="width:14px; height:14px; border-radius:3px; background:rgba(100,120,200,0.15); border:1px solid var(--border);"></div>
+              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">—</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <div style="width:14px; height:14px; border-radius:3px; background:#6fd06f;"></div>
+              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">lieve pos</span>
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <div style="width:14px; height:14px; border-radius:3px; background:#1a5c1a;"></div>
+              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">forte pos</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -676,11 +706,14 @@ async function init() {
       </tr>`;
     }).join('');
 
+    window._mensile = mensile;
+    window._mKeys = mKeys;
     buildChart(giornaliero, gKeys);
     buildBarChart(mensile, mKeys);
     buildDdChart(mensile, mKeys);
     buildDonutChart(posNeg);
     buildProjChart(valAttuale);
+    buildHeatmap(mensile, mKeys, 'rend');
     updateProj(1.5, valAttuale);
     window._valAttuale = valAttuale;
 
@@ -772,6 +805,84 @@ function updateProj(rate, base) {
 }
 
 let barChart = null, ddChart = null, projChart = null, donutChart = null;
+let hmMode = 'rend';
+
+function setHmMode(mode) {
+  hmMode = mode;
+  document.getElementById('hm-btn-rend').style.background = mode === 'rend' ? 'var(--cyan-dim)' : 'transparent';
+  document.getElementById('hm-btn-rend').style.color = mode === 'rend' ? 'var(--cyan)' : 'var(--text3)';
+  document.getElementById('hm-btn-rend').style.borderColor = mode === 'rend' ? 'var(--border3)' : 'var(--border)';
+  document.getElementById('hm-btn-dd').style.background = mode === 'dd' ? 'var(--cyan-dim)' : 'transparent';
+  document.getElementById('hm-btn-dd').style.color = mode === 'dd' ? 'var(--cyan)' : 'var(--text3)';
+  document.getElementById('hm-btn-dd').style.borderColor = mode === 'dd' ? 'var(--border3)' : 'var(--border)';
+  if (window._mensile) buildHeatmap(window._mensile, window._mKeys, mode);
+}
+
+function buildHeatmap(mensile, mKeys, mode) {
+  const mesiNomi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+  // Raggruppa per anno dinamicamente
+  const byYear = {};
+  mensile.forEach(r => {
+    const nome = r[mKeys[0]] || '';
+    const anno = nome.match(/\d{4}/)?.[0];
+    const meseStr = nome.replace(/\s*\d{4}/, '').trim().toLowerCase();
+    const meseIdx = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'].indexOf(meseStr);
+    if (!anno || meseIdx === -1) return;
+    if (!byYear[anno]) byYear[anno] = {};
+    const val = mode === 'rend' ? parsePct(r[mKeys[4]]) * 100 : parsePct(r[mKeys[6]]) * 100;
+    byYear[anno][meseIdx + 1] = val;
+  });
+
+  const anni = Object.keys(byYear).sort();
+
+  function getColor(val, mode) {
+    if (val === undefined || val === null || isNaN(val)) return { bg: 'rgba(100,120,200,0.06)', text: 'var(--text3)', val: null };
+    if (mode === 'rend') {
+      if (val >= 0) {
+        const bg = val > 15 ? '#1a5c1a' : val > 8 ? '#2d8c2d' : val > 3 ? '#3ab03a' : '#6fd06f';
+        const text = val > 8 ? '#a0f0a0' : '#1a5c1a';
+        return { bg, text };
+      } else {
+        const bg = val < -6 ? '#6b0f0f' : val < -4 ? '#a03030' : val < -2 ? '#c85050' : '#e08080';
+        const text = val < -4 ? '#ffb0b0' : '#6b0f0f';
+        return { bg, text };
+      }
+    } else {
+      const abs = Math.abs(val);
+      const bg = abs > 8 ? '#6b0f0f' : abs > 6 ? '#a03030' : abs > 4 ? '#c85050' : abs > 2 ? '#e08080' : 'rgba(100,120,200,0.12)';
+      const text = abs > 6 ? '#ffb0b0' : abs > 2 ? '#6b0f0f' : 'var(--text3)';
+      return { bg, text };
+    }
+  }
+
+  let html = `<table style="width:100%; border-collapse:collapse; font-family:var(--mono);">`;
+  html += `<thead><tr><th style="width:46px;"></th>`;
+  mesiNomi.forEach(m => {
+    html += `<th style="font-size:9px; color:var(--text3); letter-spacing:0.1em; text-align:center; padding:0 2px 8px; font-weight:400;">${m}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  anni.forEach(anno => {
+    html += `<tr><td style="font-size:11px; color:var(--text3); font-weight:500; padding:2px 6px 2px 0; white-space:nowrap;">${anno}</td>`;
+    for (let m = 1; m <= 12; m++) {
+      const val = byYear[anno][m];
+      const c = getColor(val, mode);
+      const display = val !== undefined && val !== null && !isNaN(val)
+        ? (val > 0 ? '+' : '') + val.toFixed(1) + '%'
+        : '—';
+      html += `<td style="padding:2px;">
+        <div style="background:${c.bg}; border-radius:5px; height:38px; display:flex; align-items:center; justify-content:center;">
+          <span style="font-size:10px; font-weight:500; color:${c.text};">${display}</span>
+        </div>
+      </td>`;
+    }
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById('heatmap-container').innerHTML = html;
+}
 
 function buildBarChart(mensile, mKeys) {
   const labels = mensile.map(r => r[mKeys[0]]);
@@ -852,6 +963,140 @@ function buildProjChart(base, extra = 0) {
     }
   });
 }
+
+// ── HEATMAP ──────────────────────────────────────────────
+let _heatmapData = { mensile: [], mKeys: [] };
+let _heatmapMode = 'rend';
+
+function setHeatmapMode(mode, btn) {
+  _heatmapMode = mode;
+  document.querySelectorAll('#hm-btn-rend, #hm-btn-dd').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildHeatmap(_heatmapData.mensile, _heatmapData.mKeys, mode);
+}
+
+function buildHeatmap(mensile, mKeys, mode) {
+  if (!mensile || mensile.length === 0) return;
+  _heatmapData = { mensile, mKeys };
+
+  const mesiNomi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+
+  // Mappa anno -> {1..12 -> valore}
+  const byYear = {};
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  // Anni presenti nei dati
+  const anniSet = new Set();
+
+  mensile.forEach(row => {
+    const label = row[mKeys[0]] || '';
+    // Prova a estrarre anno e mese dall'etichetta (es. "luglio 2025", "lug 2025", "07/2025")
+    let anno = null, mese = null;
+    const matchFull = label.match(/(\d{4})/);
+    if (matchFull) anno = parseInt(matchFull[1]);
+
+    const mesiMap = {
+      'gen':1,'feb':2,'mar':3,'apr':4,'mag':5,'giu':6,
+      'lug':7,'ago':8,'set':9,'ott':10,'nov':11,'dic':12,
+      'gennaio':1,'febbraio':2,'marzo':3,'aprile':4,'maggio':5,'giugno':6,
+      'luglio':7,'agosto':8,'settembre':9,'ottobre':10,'novembre':11,'dicembre':12
+    };
+    const labelLow = label.toLowerCase();
+    for (const [k, v] of Object.entries(mesiMap)) {
+      if (labelLow.includes(k)) { mese = v; break; }
+    }
+    // Prova formato mm/yyyy o yyyy-mm
+    if (!mese) {
+      const m1 = label.match(/^(\d{1,2})\/(\d{4})$/);
+      if (m1) { mese = parseInt(m1[1]); anno = parseInt(m1[2]); }
+      const m2 = label.match(/^(\d{4})-(\d{2})$/);
+      if (m2) { anno = parseInt(m2[1]); mese = parseInt(m2[2]); }
+    }
+
+    if (!anno || !mese) return;
+    if (!byYear[anno]) byYear[anno] = {};
+    const val = mode === 'dd'
+      ? parsePct(row[mKeys[6]]) * 100
+      : parsePct(row[mKeys[4]]) * 100;
+    byYear[anno][mese] = val;
+    anniSet.add(anno);
+  });
+
+  if (anniSet.size === 0) {
+    document.getElementById('heatmap-container').innerHTML =
+      '<div style="font-family:var(--mono);font-size:11px;color:var(--text3);padding:20px;">Nessun dato disponibile</div>';
+    return;
+  }
+
+  // Anni: dal minimo al massimo (inclusi anni futuri fino al corrente)
+  const minAnno = Math.min(...anniSet);
+  const maxAnno = Math.max(Math.max(...anniSet), currentYear);
+  const anni = [];
+  for (let a = minAnno; a <= maxAnno; a++) {
+    anni.push(a);
+    if (!byYear[a]) byYear[a] = {};
+  }
+
+  function getColor(val, isDD) {
+    if (val === undefined || val === null || isNaN(val)) {
+      return { bg: 'rgba(100,120,200,0.10)', text: 'var(--text3)', empty: true };
+    }
+    if (!isDD) {
+      if (val >= 0) {
+        const bg = val > 15 ? '#1a5c1a' : val > 8 ? '#2d8c2d' : val > 3 ? '#3ab03a' : '#6fd06f';
+        const text = val > 8 ? '#a0f0a0' : '#1a5c1a';
+        return { bg, text };
+      } else {
+        const bg = val < -6 ? '#6b0f0f' : val < -4 ? '#a03030' : val < -2 ? '#c85050' : '#e08080';
+        const text = val < -4 ? '#ffb0b0' : '#6b0f0f';
+        return { bg, text };
+      }
+    } else {
+      const abs = Math.abs(val);
+      const bg = abs > 8 ? '#6b0f0f' : abs > 6 ? '#a03030' : abs > 4 ? '#c85050' : abs > 2 ? '#e08080' : 'rgba(100,120,200,0.12)';
+      const text = abs > 6 ? '#ffb0b0' : abs > 2 ? '#6b0f0f' : 'var(--text3)';
+      return { bg, text };
+    }
+  }
+
+  const isDD = mode === 'dd';
+  let html = `<table style="width:100%; border-collapse:collapse; font-family:var(--mono);">`;
+  html += `<thead><tr><th style="width:46px;"></th>`;
+  mesiNomi.forEach(m => {
+    html += `<th style="font-size:9px; color:var(--text3); letter-spacing:0.1em; text-align:center; padding:0 2px 8px; font-weight:400;">${m}</th>`;
+  });
+  html += `</tr></thead><tbody>`;
+
+  anni.forEach(anno => {
+    html += `<tr><td style="font-size:11px; color:var(--text3); font-weight:500; padding:2px 6px 2px 0; white-space:nowrap;">${anno}</td>`;
+    for (let m = 1; m <= 12; m++) {
+      // Mesi futuri: cella grigia vuota
+      const isFuture = anno > currentYear || (anno === currentYear && m > currentMonth);
+      const val = isFuture ? undefined : byYear[anno][m];
+      const c = getColor(val, isDD);
+      let display;
+      if (isFuture) {
+        display = '';
+      } else if (c.empty) {
+        display = '—';
+      } else {
+        display = (val > 0 ? '+' : '') + val.toFixed(1) + '%';
+      }
+      html += `<td style="padding:2px;">
+        <div title="${display}" style="background:${c.bg}; border-radius:5px; height:34px; display:flex; align-items:center; justify-content:center; ${isFuture ? 'opacity:0.25;' : ''}">
+          <span style="font-size:9px; font-weight:500; color:${c.text}; white-space:nowrap;">${display}</span>
+        </div>
+      </td>`;
+    }
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById('heatmap-container').innerHTML = html;
+}
+// ─────────────────────────────────────────────────────────
 
 init();
 </script>
