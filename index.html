@@ -757,10 +757,10 @@ async function init() {
     buildProjChart(valAttuale);
     buildHeatmap(mensile, mKeys, 'rend');
     buildYoY(mensile, mKeys);
-    // Calcola rendimento totale dal primo dato
-    const firstVal = giornaliero.length > 0 ? parseFloat(giornaliero[0][gKeys[1]]) : null;
-    if (firstVal && valAttuale) {
-      const myRet = ((valAttuale / firstVal) - 1) * 100;
+    // Rendimento totale = (valore attuale - capitale versato) / capitale versato * 100
+    const capVersato = giornaliero.length > 0 ? parseEur(giornaliero[giornaliero.length - 1][gKeys[3]]) : null;
+    if (capVersato && valAttuale && capVersato > 0) {
+      const myRet = ((valAttuale - capVersato) / capVersato) * 100;
       setMyReturn(myRet, giornaliero[0][gKeys[0]]);
     }
     loadAlpha();
@@ -1074,8 +1074,8 @@ async function loadAlpha() {
   results.forEach(b => {
     if (!b.ok) {
       html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border);">
-        <span style="font-family:var(--mono); font-size:10px; color:var(--text2);">${b.name}</span>
-        <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">errore</span>
+        <span style="font-family:var(--mono); font-size:12px; color:var(--text2);">${b.name}</span>
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text3);">errore</span>
       </div>`;
       return;
     }
@@ -1083,14 +1083,14 @@ async function loadAlpha() {
     const alphaColor = alpha >= 0 ? 'var(--green)' : 'var(--red)';
     const alphaSign = alpha >= 0 ? '+' : '';
     const benchColor = b.ret >= 0 ? 'var(--cyan)' : 'var(--red)';
-    html += `<div style="padding:5px 0; border-bottom:1px solid var(--border);">
+    html += `<div style="padding:6px 0; border-bottom:1px solid var(--border);">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
-        <span style="font-family:var(--mono); font-size:10px; color:var(--text2); font-weight:600;">${b.name}</span>
-        <span style="font-family:var(--mono); font-size:12px; font-weight:700; color:${alphaColor};">α ${alphaSign}${alpha.toFixed(1)}%</span>
+        <span style="font-family:var(--mono); font-size:12px; color:var(--text2); font-weight:600;">${b.name}</span>
+        <span style="font-family:var(--mono); font-size:14px; font-weight:700; color:${alphaColor};">α ${alphaSign}${alpha.toFixed(1)}%</span>
       </div>
       <div style="display:flex; justify-content:space-between;">
-        <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">benchmark: <span style="color:${benchColor};">${b.ret >= 0 ? '+' : ''}${b.ret.toFixed(1)}%</span></span>
-        <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">tu: <span style="color:var(--cyan);">${myRet >= 0 ? '+' : ''}${myRet.toFixed(1)}%</span></span>
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text3);">benchmark: <span style="color:${benchColor};">${b.ret >= 0 ? '+' : ''}${b.ret.toFixed(1)}%</span></span>
+        <span style="font-family:var(--mono); font-size:11px; color:var(--text3);">tu: <span style="color:var(--cyan);">${myRet >= 0 ? '+' : ''}${myRet.toFixed(1)}%</span></span>
       </div>
     </div>`;
   });
