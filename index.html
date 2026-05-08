@@ -447,6 +447,35 @@
       </div>
     </div>
 
+    <!-- CONFRONTO ANNO SU ANNO -->
+    <div class="section-label">Confronto anno su anno</div>
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div class="chart-card" style="margin-top:0;">
+        <div class="chart-header"><div class="chart-title">Rendimento cumulato % per anno</div></div>
+        <div style="position:relative; height:200px;"><canvas id="yoyChart"></canvas></div>
+      </div>
+      <div class="chart-card" style="margin-top:0;">
+        <div class="chart-header"><div class="chart-title">Confronto mese per mese</div></div>
+        <div style="position:relative; height:200px;"><canvas id="yoyBarChart"></canvas></div>
+      </div>
+    </div>
+    <div class="table-card" style="margin-bottom:10px;">
+      <table>
+        <thead>
+          <tr>
+            <th>Mese</th>
+            <th id="yoy-th-1">—</th>
+            <th id="yoy-th-2">—</th>
+            <th id="yoy-th-3">—</th>
+            <th id="yoy-th-4">—</th>
+            <th id="yoy-th-5">—</th>
+          </tr>
+        </thead>
+        <tbody id="yoy-tbody"></tbody>
+        <tfoot id="yoy-tfoot"></tfoot>
+      </table>
+    </div>
+
     <!-- PROIEZIONE -->
     <div class="section-label">Proiezione a dicembre 2026</div>
     <div class="proj-slider">
@@ -714,6 +743,7 @@ async function init() {
     buildDonutChart(posNeg);
     buildProjChart(valAttuale);
     buildHeatmap(mensile, mKeys, 'rend');
+    buildYoY(mensile, mKeys);
     updateProj(1.5, valAttuale);
     window._valAttuale = valAttuale;
 
@@ -963,6 +993,162 @@ function buildProjChart(base, extra = 0) {
     }
   });
 }
+
+// ── CONFRONTO ANNO SU ANNO ───────────────────────────────
+let yoyChart = null, yoyBarChart = null;
+
+function buildYoY(mensile, mKeys) {
+  const mesiNomi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const mesiMap = {
+    'gen':0,'feb':1,'mar':2,'apr':3,'mag':4,'giu':5,
+    'lug':6,'ago':7,'set':8,'ott':9,'nov':10,'dic':11,
+    'gennaio':0,'febbraio':1,'marzo':2,'aprile':3,'maggio':4,'giugno':5,
+    'luglio':6,'agosto':7,'settembre':8,'ottobre':9,'novembre':10,'dicembre':11
+  };
+
+  // Costruisce mappa anno -> array 12 mesi di rendimenti
+  const byYear = {};
+  mensile.forEach(row => {
+    const label = (row[mKeys[0]] || '').toLowerCase();
+    const matchAnno = label.match(/(\d{4})/);
+    if (!matchAnno) return;
+    const anno = parseInt(matchAnno[1]);
+    let mese = -1;
+    for (const [k, v] of Object.entries(mesiMap)) {
+      if (label.includes(k)) { mese = v; break; }
+    }
+    if (mese === -1) {
+      const m1 = label.match(/^(\d{1,2})\/(\d{4})$/);
+      if (m1) mese = parseInt(m1[1]) - 1;
+      const m2 = label.match(/^(\d{4})-(\d{2})$/);
+      if (m2) mese = parseInt(m2[2]) - 1;
+    }
+    if (mese < 0) return;
+    if (!byYear[anno]) byYear[anno] = new Array(12).fill(null);
+    byYear[anno][mese] = parsePct(row[mKeys[4]]) * 100;
+  });
+
+  const anni = Object.keys(byYear).map(Number).sort();
+  if (anni.length === 0) return;
+
+  // Colori per anno
+  const palette = ['#00d2ff','#ffd166','#06d6a0','#ef476f','#a8dadc','#e9c46a','#f4a261','#264653'];
+  const getColor = i => palette[i % palette.length];
+
+  // ── Grafico 1: rendimento cumulato per anno ──
+  const datasetsLine = anni.map((anno, i) => {
+    const vals = byYear[anno];
+    const cumul = [];
+    let prod = 1;
+    for (let m = 0; m < 12; m++) {
+      if (vals[m] !== null) { prod *= (1 + vals[m] / 100); cumul.push(((prod - 1) * 100)); }
+      else { cumul.push(null); }
+    }
+    return {
+      label: String(anno),
+      data: cumul,
+      borderColor: getColor(i),
+      backgroundColor: 'transparent',
+      tension: 0.3,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      borderWidth: 2,
+      spanGaps: false
+    };
+  });
+
+  if (yoyChart) yoyChart.destroy();
+  yoyChart = new Chart(document.getElementById('yoyChart').getContext('2d'), {
+    type: 'line',
+    data: { labels: mesiNomi, datasets: datasetsLine },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, labels: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 9 }, boxWidth: 10, padding: 8 } },
+        tooltip: { backgroundColor: '#1a1a2e', borderColor: 'rgba(100,120,200,0.22)', borderWidth: 1, titleColor: '#8892b0', bodyColor: '#e8eaf6', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 10 }, callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y !== null ? (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' : '—') } }
+      },
+      scales: {
+        x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 9 } }, grid: { color: 'rgba(100,120,200,0.07)' }, border: { color: 'rgba(100,120,200,0.12)' } },
+        y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 9 }, callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%' }, grid: { color: 'rgba(100,120,200,0.07)' }, border: { color: 'rgba(100,120,200,0.12)' } }
+      }
+    }
+  });
+
+  // ── Grafico 2: bar grouped per mese ──
+  const datasetsBar = anni.map((anno, i) => ({
+    label: String(anno),
+    data: byYear[anno],
+    backgroundColor: getColor(i) + 'aa',
+    borderColor: getColor(i),
+    borderWidth: 1,
+    borderRadius: 3
+  }));
+
+  if (yoyBarChart) yoyBarChart.destroy();
+  yoyBarChart = new Chart(document.getElementById('yoyBarChart').getContext('2d'), {
+    type: 'bar',
+    data: { labels: mesiNomi, datasets: datasetsBar },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, labels: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 9 }, boxWidth: 10, padding: 8 } },
+        tooltip: { backgroundColor: '#1a1a2e', borderColor: 'rgba(100,120,200,0.22)', borderWidth: 1, titleColor: '#8892b0', bodyColor: '#e8eaf6', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 10 }, callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y !== null ? (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' : '—') } }
+      },
+      scales: {
+        x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 9 } }, grid: { color: 'rgba(100,120,200,0.07)' }, border: { color: 'rgba(100,120,200,0.12)' } },
+        y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 9 }, callback: v => (v >= 0 ? '+' : '') + v.toFixed(1) + '%' }, grid: { color: 'rgba(100,120,200,0.07)' }, border: { color: 'rgba(100,120,200,0.12)' } }
+      }
+    }
+  });
+
+  // ── Tabella riepilogo ──
+  // Intestazioni anni (max 5 mostrati)
+  const anniShow = anni.slice(-5);
+  anniShow.forEach((anno, i) => {
+    const th = document.getElementById('yoy-th-' + (i + 1));
+    if (th) { th.textContent = anno; th.style.color = getColor(anni.indexOf(anno)); }
+  });
+  // Nascondi colonne in eccesso
+  for (let i = anniShow.length + 1; i <= 5; i++) {
+    const th = document.getElementById('yoy-th-' + i);
+    if (th) th.style.display = 'none';
+  }
+
+  const tbody = document.getElementById('yoy-tbody');
+  let rows = '';
+  for (let m = 0; m < 12; m++) {
+    const hasSome = anniShow.some(a => byYear[a][m] !== null);
+    if (!hasSome) continue;
+    rows += `<tr><td>${mesiNomi[m]}</td>`;
+    anniShow.forEach((anno, i) => {
+      const v = byYear[anno][m];
+      if (v === null || v === undefined) {
+        rows += `<td style="color:var(--text3)">—</td>`;
+      } else {
+        const cls = v >= 0 ? 'td-pos' : 'td-neg';
+        rows += `<td class="${cls}">${(v >= 0 ? '+' : '') + v.toFixed(2) + '%'}</td>`;
+      }
+    });
+    rows += `</tr>`;
+  }
+  tbody.innerHTML = rows;
+
+  // Totali annuali in tfoot
+  const tfoot = document.getElementById('yoy-tfoot');
+  let tfootRow = `<tr style="border-top:1px solid var(--border2);"><td style="font-family:var(--mono);font-size:11px;color:var(--text3);font-weight:600;">TOT ANNO</td>`;
+  anniShow.forEach(anno => {
+    const vals = byYear[anno].filter(v => v !== null);
+    if (vals.length === 0) { tfootRow += `<td style="color:var(--text3)">—</td>`; return; }
+    const tot = (vals.reduce((acc, v) => acc * (1 + v / 100), 1) - 1) * 100;
+    const cls = tot >= 0 ? 'td-pos' : 'td-neg';
+    tfootRow += `<td class="${cls}" style="font-weight:600;">${(tot >= 0 ? '+' : '') + tot.toFixed(2) + '%'}</td>`;
+  });
+  tfootRow += `</tr>`;
+  tfoot.innerHTML = tfootRow;
+}
+// ─────────────────────────────────────────────────────────
 
 // ── HEATMAP ──────────────────────────────────────────────
 let _heatmapData = { mensile: [], mKeys: [] };
