@@ -129,9 +129,9 @@
   .table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 10px; box-shadow: var(--shadow-card); }
   table { width: 100%; border-collapse: collapse; }
   thead tr { border-bottom: 1px solid var(--border2); background: rgba(0,210,255,0.03); }
-  th { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); padding: 13px 16px; text-align: right; font-weight: 400; }
+  th { font-family: var(--mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); padding: 8px 12px; text-align: right; font-weight: 400; }
   th:first-child { text-align: left; }
-  td { font-family: var(--mono); font-size: 12px; color: var(--text2); padding: 11px 16px; text-align: right; border-bottom: 1px solid var(--border); }
+  td { font-family: var(--mono); font-size: 11px; color: var(--text2); padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--border); }
   td:first-child { text-align: left; color: var(--text); font-weight: 500; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: rgba(0,210,255,0.03); }
@@ -376,23 +376,25 @@
         </div>
       </div>
       <div class="chart-card-sm" style="display:flex; flex-direction:column;">
-        <div class="chart-header" style="margin-bottom:12px;"><div class="chart-title">Profit Factor</div></div>
-        <div style="flex:1; display:flex; flex-direction:column; gap:16px; justify-content:center;">
+        <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Profit Factor</div></div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px; justify-content:center;">
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">Rapporto guadagni / perdite</div>
-            <div id="pf-value" style="font-family:var(--mono); font-size:36px; font-weight:700; color:var(--cyan); line-height:1;">—</div>
-            <div id="pf-label" style="font-family:var(--mono); font-size:10px; margin-top:6px; color:var(--text3);">—</div>
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">Rapporto guadagni / perdite</div>
+            <div id="pf-value" style="font-family:var(--mono); font-size:30px; font-weight:700; color:var(--cyan); line-height:1;">—</div>
+            <div id="pf-label" style="font-family:var(--mono); font-size:10px; margin-top:4px; color:var(--text3);">—</div>
+          </div>
+          <div style="display:flex; gap:16px;">
+            <div>
+              <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:2px;">Mesi in guadagno</div>
+              <div id="pf-pos-sum" style="font-family:var(--mono); font-size:13px; font-weight:500; color:var(--cyan);">—</div>
+            </div>
+            <div>
+              <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:2px;">Mesi in perdita</div>
+              <div id="pf-neg-sum" style="font-family:var(--mono); font-size:13px; font-weight:500; color:var(--red);">—</div>
+            </div>
           </div>
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">Mesi in guadagno</div>
-            <div id="pf-pos-sum" style="font-family:var(--mono); font-size:14px; font-weight:500; color:var(--cyan);">—</div>
-          </div>
-          <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">Mesi in perdita</div>
-            <div id="pf-neg-sum" style="font-family:var(--mono); font-size:14px; font-weight:500; color:var(--red);">—</div>
-          </div>
-          <div>
-            <div style="background:var(--bg3); border-radius:4px; height:8px; overflow:hidden; border:1px solid var(--border); margin-bottom:6px;">
+            <div style="background:var(--bg3); border-radius:4px; height:6px; overflow:hidden; border:1px solid var(--border); margin-bottom:4px;">
               <div id="pf-bar" style="height:100%; border-radius:4px; transition:width 0.6s ease; width:0%;"></div>
             </div>
             <div id="pf-quality" style="font-family:var(--mono); font-size:10px; color:var(--text3);">—</div>
@@ -463,13 +465,13 @@
     <!-- CONFRONTO ANNO SU ANNO -->
     <div class="section-label">Confronto anno su anno</div>
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px; max-width:60%;">
-      <div class="chart-card" style="margin-top:0;">
-        <div class="chart-header"><div class="chart-title">Rendimento cumulato % per anno</div></div>
-        <div style="position:relative; height:200px;"><canvas id="yoyChart"></canvas></div>
+      <div class="chart-card" style="margin-top:0; padding:14px;">
+        <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Rendimento cumulato % per anno</div></div>
+        <div style="position:relative; height:150px;"><canvas id="yoyChart"></canvas></div>
       </div>
-      <div class="chart-card" style="margin-top:0;">
-        <div class="chart-header"><div class="chart-title">Confronto mese per mese</div></div>
-        <div style="position:relative; height:200px;"><canvas id="yoyBarChart"></canvas></div>
+      <div class="chart-card" style="margin-top:0; padding:14px;">
+        <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Confronto mese per mese</div></div>
+        <div style="position:relative; height:150px;"><canvas id="yoyBarChart"></canvas></div>
       </div>
     </div>
     <div class="table-card" style="margin-bottom:10px; max-width:60%;">
