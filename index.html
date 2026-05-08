@@ -364,6 +364,18 @@
         </div>
       </div>
       <div class="chart-card-sm" style="display:flex; flex-direction:column;">
+        <div class="chart-header" style="margin-bottom:10px;">
+          <div class="chart-title">Alpha vs Benchmark</div>
+          <div id="alpha-status" style="font-family:var(--mono); font-size:9px; color:var(--text3);">caricamento...</div>
+        </div>
+        <div id="alpha-content" style="flex:1; display:flex; flex-direction:column; gap:6px; justify-content:center;">
+          <div style="font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center;">Caricamento dati di mercato...</div>
+        </div>
+        <div style="margin-top:8px;">
+          <button onclick="loadAlpha()" style="font-family:var(--mono); font-size:9px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:4px 10px; cursor:pointer; letter-spacing:0.1em;">↻ AGGIORNA</button>
+        </div>
+      </div>
+      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
         <div class="chart-header" style="margin-bottom:12px;"><div class="chart-title">Profit Factor</div></div>
         <div style="flex:1; display:flex; flex-direction:column; gap:16px; justify-content:center;">
           <div>
@@ -388,6 +400,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- RIEPILOGO MENSILE: metà sinistra tabella, metà destra libera -->
     <div class="section-label">Riepilogo mensile</div>
@@ -744,6 +757,13 @@ async function init() {
     buildProjChart(valAttuale);
     buildHeatmap(mensile, mKeys, 'rend');
     buildYoY(mensile, mKeys);
+    // Calcola rendimento totale dal primo dato
+    const firstVal = giornaliero.length > 0 ? parseFloat(giornaliero[0][gKeys[1]]) : null;
+    if (firstVal && valAttuale) {
+      const myRet = ((valAttuale / firstVal) - 1) * 100;
+      setMyReturn(myRet, giornaliero[0][gKeys[0]]);
+    }
+    loadAlpha();
     updateProj(1.5, valAttuale);
     window._valAttuale = valAttuale;
 
@@ -993,6 +1013,91 @@ function buildProjChart(base, extra = 0) {
     }
   });
 }
+
+// ── ALPHA VS BENCHMARK ───────────────────────────────────
+let _myReturn = 0;
+let _startDate = null;
+
+function setMyReturn(val, startDate) {
+  _myReturn = val;
+  _startDate = startDate;
+}
+
+async function loadAlpha() {
+  const statusEl = document.getElementById('alpha-status');
+  const contentEl = document.getElementById('alpha-content');
+  if (!statusEl || !contentEl) return;
+
+  statusEl.textContent = 'caricamento...';
+  contentEl.innerHTML = '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);text-align:center;padding:20px 0;">Caricamento dati di mercato...</div>';
+
+  // Data inizio: luglio 2025
+  const from = Math.floor(new Date('2025-07-01').getTime() / 1000);
+  const to = Math.floor(Date.now() / 1000);
+
+  const benchmarks = [
+    { name: 'S&P 500',    ticker: '%5EGSPC' },
+    { name: 'NASDAQ',     ticker: '%5EIXIC' },
+    { name: 'MSCI World', ticker: 'URTH'    },
+    { name: 'FTSE MIB',   ticker: 'FTSEMIB.MI' },
+    { name: 'BTP 10Y',    ticker: null, fixed: 3.5 }
+  ];
+
+  const proxy = 'https://corsproxy.io/?';
+  const results = [];
+
+  for (const b of benchmarks) {
+    if (b.fixed !== undefined) {
+      // BTP: rendimento fisso annualizzato, calcolo pro-rata dal luglio 2025
+      const months = (Date.now() - new Date('2025-07-01').getTime()) / (1000 * 60 * 60 * 24 * 30.44);
+      const ret = (b.fixed / 12) * months;
+      results.push({ name: b.name, ret: parseFloat(ret.toFixed(2)), ok: true });
+      continue;
+    }
+    try {
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${b.ticker}?period1=${from}&period2=${to}&interval=1mo`;
+      const res = await fetch(proxy + encodeURIComponent(url), { signal: AbortSignal.timeout(8000) });
+      const data = await res.json();
+      const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v => v !== null);
+      if (!closes || closes.length < 2) throw new Error('no data');
+      const ret = ((closes[closes.length - 1] / closes[0]) - 1) * 100;
+      results.push({ name: b.name, ret: parseFloat(ret.toFixed(2)), ok: true });
+    } catch {
+      results.push({ name: b.name, ret: null, ok: false });
+    }
+  }
+
+  statusEl.textContent = new Date().toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+
+  const myRet = _myReturn;
+  let html = '';
+  results.forEach(b => {
+    if (!b.ok) {
+      html += `<div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid var(--border);">
+        <span style="font-family:var(--mono); font-size:10px; color:var(--text2);">${b.name}</span>
+        <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">errore</span>
+      </div>`;
+      return;
+    }
+    const alpha = myRet - b.ret;
+    const alphaColor = alpha >= 0 ? 'var(--green)' : 'var(--red)';
+    const alphaSign = alpha >= 0 ? '+' : '';
+    const benchColor = b.ret >= 0 ? 'var(--cyan)' : 'var(--red)';
+    html += `<div style="padding:5px 0; border-bottom:1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3px;">
+        <span style="font-family:var(--mono); font-size:10px; color:var(--text2); font-weight:600;">${b.name}</span>
+        <span style="font-family:var(--mono); font-size:12px; font-weight:700; color:${alphaColor};">α ${alphaSign}${alpha.toFixed(1)}%</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">benchmark: <span style="color:${benchColor};">${b.ret >= 0 ? '+' : ''}${b.ret.toFixed(1)}%</span></span>
+        <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">tu: <span style="color:var(--cyan);">${myRet >= 0 ? '+' : ''}${myRet.toFixed(1)}%</span></span>
+      </div>
+    </div>`;
+  });
+
+  contentEl.innerHTML = html || '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);">Nessun dato disponibile</div>';
+}
+// ─────────────────────────────────────────────────────────
 
 // ── CONFRONTO ANNO SU ANNO ───────────────────────────────
 let yoyChart = null, yoyBarChart = null;
