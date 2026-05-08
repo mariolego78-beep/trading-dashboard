@@ -757,10 +757,9 @@ async function init() {
     buildProjChart(valAttuale);
     buildHeatmap(mensile, mKeys, 'rend');
     buildYoY(mensile, mKeys);
-    // Rendimento totale = (valore attuale - capitale versato) / capitale versato * 100
-    const capVersato = giornaliero.length > 0 ? parseEur(giornaliero[giornaliero.length - 1][gKeys[3]]) : null;
-    if (capVersato && valAttuale && capVersato > 0) {
-      const myRet = ((valAttuale - capVersato) / capVersato) * 100;
+    // Rendimento totale già calcolato sopra
+    if (versatoTot && valAttuale && versatoTot > 0) {
+      const myRet = ((valAttuale - versatoTot) / versatoTot) * 100;
       setMyReturn(myRet, giornaliero[0][gKeys[0]]);
     }
     loadAlpha();
