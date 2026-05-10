@@ -198,7 +198,7 @@
     <div class="section-label">Portafoglio</div>
 
     <!-- KPI: riga unica compatta -->
-    <div style="display:grid; grid-template-columns: 1.4fr repeat(11,1fr); gap:6px;">
+    <div style="display:grid; grid-template-columns: 1.4fr repeat(12,1fr); gap:6px;">
       <div class="metric-card hero pos">
         <div class="metric-label">Valore Attuale</div>
         <div class="metric-value big pos" id="val-attuale">—</div>
@@ -247,6 +247,11 @@
         <div class="metric-label">DD peggiore</div>
         <div class="metric-value neg" id="dd-max">—</div>
         <div class="metric-sub" id="dd-max-mese">—</div>
+      </div>
+      <div class="metric-card neg">
+        <div class="metric-label">DD annuale</div>
+        <div class="metric-value neg" id="dd-anno">—</div>
+        <div class="metric-sub" id="dd-anno-sub">—</div>
       </div>
       <div class="metric-card">
         <div class="metric-label">Volatilità</div>
@@ -697,6 +702,21 @@ async function init() {
     const ddMaxIdx = ddVals.indexOf(ddMax);
     document.getElementById('dd-max').textContent = (ddMax * 100).toFixed(2) + '%';
     document.getElementById('dd-max-mese').textContent = mensile[ddMaxIdx][mKeys[0]];
+
+    // DD annuale: peggior DD tra i mesi dell'anno corrente
+    const annoCorrente = new Date().getFullYear().toString();
+    const ddAnnoVals = mensile
+      .filter(r => (r[mKeys[0]] || '').includes(annoCorrente))
+      .map(r => parsePct(r[mKeys[6]]));
+    if (ddAnnoVals.length > 0) {
+      const ddAnno = Math.min(...ddAnnoVals);
+      document.getElementById('dd-anno').textContent = (ddAnno * 100).toFixed(2) + '%';
+      document.getElementById('dd-anno-sub').textContent = annoCorrente;
+      document.getElementById('dd-anno').style.color = ddAnno < -0.10 ? 'var(--red)' : ddAnno < -0.05 ? 'var(--yellow)' : 'var(--red)';
+    } else {
+      document.getElementById('dd-anno').textContent = '—';
+      document.getElementById('dd-anno-sub').textContent = annoCorrente;
+    }
 
     document.getElementById('vol-mese').textContent = (parsePct(lastM[mKeys[7]]) * 100).toFixed(2) + '%';
     document.getElementById('pos-neg').textContent = posNeg.replace('+ / ', ' / ').replace('+', '▲').replace('-', '▼');
