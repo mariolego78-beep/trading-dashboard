@@ -260,8 +260,8 @@
       </div>
     </div>
 
-    <!-- RIGA 2: Portfolio | Rendimenti | Drawdown | Breakeven | Obiettivo -->
-    <div style="display:grid; grid-template-columns: 2.2fr 1fr 1fr 0.8fr 0.8fr; gap:6px; margin-top:8px; align-items:stretch;">
+    <!-- RIGA 2: Portfolio | Pos/Neg donut | Drawdown | Breakeven | Obiettivo -->
+    <div style="display:grid; grid-template-columns: 2.2fr 0.85fr 1fr 0.8fr 0.8fr; gap:6px; margin-top:8px; align-items:stretch;">
       <div class="chart-card">
         <div class="chart-header">
           <div class="chart-title">Valore portafoglio nel tempo</div>
@@ -274,9 +274,35 @@
         </div>
         <div style="position:relative; height:170px;"><canvas id="portfolioChart"></canvas></div>
       </div>
-      <div class="chart-card">
-        <div class="chart-header"><div class="chart-title">Rendimenti mensili %</div></div>
-        <div style="position:relative; height:170px;"><canvas id="barChart"></canvas></div>
+      <!-- Pos/Neg donut spostato qui -->
+      <div class="chart-card" style="display:flex; flex-direction:column; justify-content:center;">
+        <div class="chart-header"><div class="chart-title">Pos / Neg</div></div>
+        <div class="donut-wrap" style="flex:1; align-items:center;">
+          <div style="position:relative; height:90px; width:90px; flex-shrink:0;"><canvas id="donutChart"></canvas></div>
+          <div class="donut-legend" style="gap:8px;">
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background:var(--green)"></div>
+              <div>
+                <div id="donut-pos-val" style="color:var(--green); font-size:13px; font-weight:500; font-family:var(--mono);">—</div>
+                <div style="color:var(--text3); font-size:8px; font-family:var(--mono);">POS</div>
+              </div>
+            </div>
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background:var(--red)"></div>
+              <div>
+                <div id="donut-neg-val" style="color:var(--red); font-size:13px; font-weight:500; font-family:var(--mono);">—</div>
+                <div style="color:var(--text3); font-size:8px; font-family:var(--mono);">NEG</div>
+              </div>
+            </div>
+            <div class="donut-legend-item">
+              <div class="donut-dot" style="background:var(--yellow)"></div>
+              <div>
+                <div id="donut-wr-val" style="color:var(--yellow); font-size:13px; font-weight:500; font-family:var(--mono);">—</div>
+                <div style="color:var(--text3); font-size:8px; font-family:var(--mono);">WIN%</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="chart-card">
         <div class="chart-header"><div class="chart-title">Drawdown mensile %</div></div>
@@ -321,40 +347,16 @@
       </div>
     </div>
 
-    <!-- RIGA 3: Compound | Donut | Alpha | Profit Factor -->
-    <div style="display:grid; grid-template-columns: 2.2fr 0.7fr 1fr 0.7fr; gap:6px; margin-top:8px; align-items:stretch;">
+    <!-- RIGA 3: Compound | Rendimenti mensili | Alpha | Profit Factor -->
+    <div style="display:grid; grid-template-columns: 2.2fr 1.1fr 1fr 0.7fr; gap:6px; margin-top:8px; align-items:stretch;">
       <div class="chart-card">
         <div class="chart-header"><div class="chart-title">Proiezione compound interest</div></div>
-        <div style="position:relative; height:130px;"><canvas id="projChart"></canvas></div>
+        <div style="position:relative; height:100px;"><canvas id="projChart"></canvas></div>
       </div>
-      <div class="chart-card-sm" style="display:flex; flex-direction:column; justify-content:center;">
-        <div class="chart-header"><div class="chart-title">Pos / Neg</div></div>
-        <div class="donut-wrap" style="flex:1; align-items:center;">
-          <div style="position:relative; height:90px; width:90px; flex-shrink:0;"><canvas id="donutChart"></canvas></div>
-          <div class="donut-legend" style="gap:8px;">
-            <div class="donut-legend-item">
-              <div class="donut-dot" style="background:var(--green)"></div>
-              <div>
-                <div id="donut-pos-val" style="color:var(--green); font-size:13px; font-weight:500; font-family:var(--mono);">—</div>
-                <div style="color:var(--text3); font-size:8px; font-family:var(--mono);">POS</div>
-              </div>
-            </div>
-            <div class="donut-legend-item">
-              <div class="donut-dot" style="background:var(--red)"></div>
-              <div>
-                <div id="donut-neg-val" style="color:var(--red); font-size:13px; font-weight:500; font-family:var(--mono);">—</div>
-                <div style="color:var(--text3); font-size:8px; font-family:var(--mono);">NEG</div>
-              </div>
-            </div>
-            <div class="donut-legend-item">
-              <div class="donut-dot" style="background:var(--yellow)"></div>
-              <div>
-                <div id="donut-wr-val" style="color:var(--yellow); font-size:13px; font-weight:500; font-family:var(--mono);">—</div>
-                <div style="color:var(--text3); font-size:8px; font-family:var(--mono);">WIN%</div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <!-- Rendimenti mensili spostato qui -->
+      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
+        <div class="chart-header"><div class="chart-title">Rendimenti mensili %</div></div>
+        <div style="position:relative; flex:1; min-height:90px;"><canvas id="barChart"></canvas></div>
       </div>
       <div class="chart-card-sm" style="display:flex; flex-direction:column;">
         <div class="chart-header" style="margin-bottom:8px;">
