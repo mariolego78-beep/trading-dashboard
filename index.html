@@ -201,27 +201,33 @@
   <div id="dashboard" style="display:none;">
 
     <div class="section-label">Portafoglio</div>
-    <div class="metric-grid grid-12">
-      <div class="metric-card hero pos">
-        <div class="metric-label">Valore Attuale</div>
-        <div class="metric-value big pos" id="val-attuale">—</div>
+
+    <!-- FASCIA 1: metriche primarie (hero) -->
+    <div style="display:grid; grid-template-columns: 1.6fr 1.2fr 1.2fr 1fr; gap:10px;">
+      <div class="metric-card hero pos" style="padding:20px 22px;">
+        <div class="metric-label" style="font-size:10px;">Valore Attuale</div>
+        <div class="metric-value pos" style="font-size:28px; font-weight:700; letter-spacing:-0.04em;" id="val-attuale">—</div>
         <div class="metric-sub" id="val-data">—</div>
       </div>
-      <div class="metric-card">
-        <div class="metric-label">Capitale Versato</div>
-        <div class="metric-value" id="val-versato">—</div>
-        <div class="metric-sub">totale versamenti</div>
-      </div>
-      <div class="metric-card pos">
-        <div class="metric-label">Profitto Totale</div>
-        <div class="metric-value pos" id="val-profitto">—</div>
+      <div class="metric-card pos" style="padding:20px 22px;">
+        <div class="metric-label" style="font-size:10px;">Profitto Totale</div>
+        <div class="metric-value pos" style="font-size:24px; font-weight:600;" id="val-profitto">—</div>
         <div class="metric-sub" id="val-profitto-pct">—</div>
       </div>
-      <div class="metric-card">
-        <div class="metric-label">CAGR Annualizzato</div>
-        <div class="metric-value pos" id="val-cagr">—</div>
+      <div class="metric-card" style="padding:20px 22px;">
+        <div class="metric-label" style="font-size:10px;">Capitale Versato</div>
+        <div class="metric-value" style="font-size:24px; font-weight:600;" id="val-versato">—</div>
+        <div class="metric-sub">totale versamenti</div>
+      </div>
+      <div class="metric-card" style="padding:20px 22px;">
+        <div class="metric-label" style="font-size:10px;">CAGR Annualizzato</div>
+        <div class="metric-value pos" style="font-size:24px; font-weight:600;" id="val-cagr">—</div>
         <div class="metric-sub">da luglio 2025</div>
       </div>
+    </div>
+
+    <!-- FASCIA 2: rendimenti periodici + rischio -->
+    <div style="display:grid; grid-template-columns: repeat(4,1fr) 2px repeat(4,1fr); gap:10px; margin-top:10px; align-items:stretch;">
       <div class="metric-card">
         <div class="metric-label">Mese corrente</div>
         <div class="metric-value" id="rend-mese">—</div>
@@ -242,6 +248,8 @@
         <div class="metric-value pos" id="rend-medio">—</div>
         <div class="metric-sub">media storica</div>
       </div>
+      <!-- separatore verticale visivo -->
+      <div style="background:var(--border); border-radius:2px; margin:4px 0;"></div>
       <div class="metric-card neg">
         <div class="metric-label">DD Mese corrente</div>
         <div class="metric-value neg" id="dd-mese">—</div>
@@ -263,7 +271,7 @@
     </div>
 
     <div class="section-label">Andamento portafoglio</div>
-    <div style="display:grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap:10px; margin-top:0;">
+    <div style="display:grid; grid-template-columns: 3fr 1.4fr 1fr 1fr; gap:10px; margin-top:0;">
       <div class="chart-card" style="margin-top:0;">
         <div class="chart-header">
           <div class="chart-title">Valore portafoglio nel tempo</div>
@@ -325,7 +333,8 @@
     </div>
 
     <div class="section-label">Analisi grafica</div>
-    <div class="charts-grid">
+    <!-- Prima riga: Drawdown largo + Compound Interest largo -->
+    <div style="display:grid; grid-template-columns: 1fr 1.6fr; gap:10px; margin-top:0;">
       <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Drawdown mensile %</div></div>
         <div style="position:relative; height:200px;"><canvas id="ddChart"></canvas></div>
@@ -334,7 +343,10 @@
         <div class="chart-header"><div class="chart-title">Proiezione compound interest</div></div>
         <div style="position:relative; height:200px;"><canvas id="projChart"></canvas></div>
       </div>
-      <div class="chart-card-sm" style="max-width:280px;">
+    </div>
+    <!-- Seconda riga: Donut + Alpha + Profit Factor -->
+    <div style="display:grid; grid-template-columns: 1fr 1.4fr 1fr; gap:10px; margin-top:10px;">
+      <div class="chart-card-sm" style="">
         <div class="chart-header"><div class="chart-title">Distribuzione giorni pos / neg</div></div>
         <div class="donut-wrap" style="height:160px;">
           <div style="position:relative; height:120px; width:120px; flex-shrink:0;"><canvas id="donutChart"></canvas></div>
@@ -464,7 +476,7 @@
 
     <!-- CONFRONTO ANNO SU ANNO -->
     <div class="section-label">Confronto anno su anno</div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px; max-width:60%;">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
       <div class="chart-card" style="margin-top:0; padding:14px;">
         <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Rendimento cumulato % per anno</div></div>
         <div style="position:relative; height:150px;"><canvas id="yoyChart"></canvas></div>
@@ -474,7 +486,7 @@
         <div style="position:relative; height:150px;"><canvas id="yoyBarChart"></canvas></div>
       </div>
     </div>
-    <div class="table-card" style="margin-bottom:10px; max-width:60%;">
+    <div class="table-card" style="margin-bottom:10px;">
       <table>
         <thead>
           <tr>
