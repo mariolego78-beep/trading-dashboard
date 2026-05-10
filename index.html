@@ -202,7 +202,7 @@
 
     <div class="section-label">Portafoglio</div>
 
-    <!-- FASCIA 1: metriche primarie (hero) -->
+    <!-- FASCIA 1: metriche primarie -->
     <div style="display:grid; grid-template-columns: 1.6fr 1.2fr 1.2fr 1fr; gap:10px;">
       <div class="metric-card hero pos" style="padding:20px 22px;">
         <div class="metric-label" style="font-size:10px;">Valore Attuale</div>
@@ -226,7 +226,7 @@
       </div>
     </div>
 
-    <!-- FASCIA 2: rendimenti periodici + rischio -->
+    <!-- FASCIA 2: rendimenti | separatore | rischio -->
     <div style="display:grid; grid-template-columns: repeat(4,1fr) 2px repeat(4,1fr); gap:10px; margin-top:10px; align-items:stretch;">
       <div class="metric-card">
         <div class="metric-label">Mese corrente</div>
@@ -248,7 +248,6 @@
         <div class="metric-value pos" id="rend-medio">—</div>
         <div class="metric-sub">media storica</div>
       </div>
-      <!-- separatore verticale visivo -->
       <div style="background:var(--border); border-radius:2px; margin:4px 0;"></div>
       <div class="metric-card neg">
         <div class="metric-label">DD Mese corrente</div>
@@ -329,8 +328,7 @@
     </div>
 
     <div class="section-label">Analisi grafica</div>
-    <div class="section-label">Analisi grafica</div>
-    <!-- Prima riga: Drawdown + Rendimenti mensili (con label) + Compound Interest -->
+    <!-- Riga 1: Drawdown + Rendimenti mensili + Compound Interest -->
     <div style="display:grid; grid-template-columns: 1fr 1.4fr 1.6fr; gap:10px; margin-top:0;">
       <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Drawdown mensile %</div></div>
@@ -345,9 +343,9 @@
         <div style="position:relative; height:230px;"><canvas id="projChart"></canvas></div>
       </div>
     </div>
-    <!-- Seconda riga: Donut (piccolo) + Alpha (medio) + Profit Factor (piccolo) -->
-    <div style="display:grid; grid-template-columns: 0.55fr 1fr 0.55fr; gap:10px; margin-top:10px;">
-      <div class="chart-card-sm" style="">
+    <!-- Riga 2: Donut piccolo + Alpha benchmark medio + Profit Factor piccolo -->
+    <div style="display:grid; grid-template-columns: 0.55fr 1fr 0.55fr; gap:10px; margin-top:10px; align-items:start;">
+      <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Distribuzione giorni pos / neg</div></div>
         <div class="donut-wrap" style="height:140px;">
           <div style="position:relative; height:110px; width:110px; flex-shrink:0;"><canvas id="donutChart"></canvas></div>
@@ -376,21 +374,21 @@
           </div>
         </div>
       </div>
-      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
+      <div class="chart-card-sm">
         <div class="chart-header" style="margin-bottom:10px;">
           <div class="chart-title">Alpha vs Benchmark</div>
           <div id="alpha-status" style="font-family:var(--mono); font-size:9px; color:var(--text3);">caricamento...</div>
         </div>
-        <div id="alpha-content" style="flex:1; display:flex; flex-direction:column; gap:6px; justify-content:center;">
+        <div id="alpha-content" style="display:flex; flex-direction:column; gap:6px;">
           <div style="font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center;">Caricamento dati di mercato...</div>
         </div>
         <div style="margin-top:8px;">
           <button onclick="loadAlpha()" style="font-family:var(--mono); font-size:9px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:4px 10px; cursor:pointer; letter-spacing:0.1em;">↻ AGGIORNA</button>
         </div>
       </div>
-      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
+      <div class="chart-card-sm">
         <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Profit Factor</div></div>
-        <div style="flex:1; display:flex; flex-direction:column; gap:10px; justify-content:center;">
+        <div style="display:flex; flex-direction:column; gap:10px;">
           <div>
             <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">Rapporto guadagni / perdite</div>
             <div id="pf-value" style="font-family:var(--mono); font-size:30px; font-weight:700; color:var(--cyan); line-height:1;">—</div>
@@ -477,7 +475,7 @@
 
     <!-- CONFRONTO ANNO SU ANNO -->
     <div class="section-label">Confronto anno su anno</div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px; ">
       <div class="chart-card" style="margin-top:0; padding:14px;">
         <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Rendimento cumulato % per anno</div></div>
         <div style="position:relative; height:190px;"><canvas id="yoyChart"></canvas></div>
@@ -487,7 +485,7 @@
         <div style="position:relative; height:190px;"><canvas id="yoyBarChart"></canvas></div>
       </div>
     </div>
-    <div class="table-card" style="margin-bottom:10px;">
+    <div class="table-card" style="margin-bottom:10px; ">
       <table>
         <thead>
           <tr>
@@ -953,12 +951,10 @@ function buildBarChart(mensile, mKeys) {
   const values = mensile.map(r => parsePct(r[mKeys[4]]) * 100);
   const colors = values.map(v => v >= 0 ? 'rgba(0,210,255,0.7)' : 'rgba(255,77,106,0.7)');
   const borderColors = values.map(v => v >= 0 ? '#00d2ff' : '#ff4d6a');
-
-  // Plugin inline per label sopra/sotto le barre
   const barLabelPlugin = {
     id: 'barLabels',
     afterDatasetsDraw(chart) {
-      const { ctx, data, scales: { x, y } } = chart;
+      const { ctx, data, scales: { y } } = chart;
       ctx.save();
       ctx.font = '500 9px "IBM Plex Mono"';
       ctx.textAlign = 'center';
@@ -966,16 +962,14 @@ function buildBarChart(mensile, mKeys) {
         if (val === null || val === undefined) return;
         const meta = chart.getDatasetMeta(0);
         const bar = meta.data[i];
-        const xPos = bar.x;
         const isPos = val >= 0;
         const yPos = isPos ? bar.y - 4 : bar.y + 11;
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        ctx.fillText((isPos ? '+' : '') + val.toFixed(1) + '%', xPos, yPos);
+        ctx.fillStyle = 'rgba(255,255,255,0.82)';
+        ctx.fillText((isPos ? '+' : '') + val.toFixed(1) + '%', bar.x, yPos);
       });
       ctx.restore();
     }
   };
-
   if (barChart) barChart.destroy();
   barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
     type: 'bar',
