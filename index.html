@@ -347,11 +347,25 @@
       </div>
     </div>
 
-    <!-- RIGA 3: Compound | Rendimenti mensili | Alpha | Profit Factor -->
+    <!-- RIGA 3: Tabella mensile | Rendimenti mensili | Alpha | Profit Factor -->
     <div style="display:grid; grid-template-columns: 2.2fr 1.1fr 1fr 0.7fr; gap:6px; margin-top:8px; align-items:stretch;">
-      <div class="chart-card">
-        <div class="chart-header"><div class="chart-title">Proiezione compound interest</div></div>
-        <div style="position:relative; height:100px;"><canvas id="projChart"></canvas></div>
+      <!-- Tabella riepilogo mensile spostata qui -->
+      <div class="table-card" style="margin-top:0;">
+        <table>
+          <thead>
+            <tr>
+              <th>Mese</th>
+              <th>Inizio</th>
+              <th>Fine</th>
+              <th>Versamento</th>
+              <th>Rend %</th>
+              <th>Rend annuale</th>
+              <th>Drawdown</th>
+              <th>Volatilità</th>
+            </tr>
+          </thead>
+          <tbody id="monthly-tbody"></tbody>
+        </table>
       </div>
       <!-- Rendimenti mensili spostato qui -->
       <div class="chart-card-sm" style="display:flex; flex-direction:column;">
@@ -399,25 +413,62 @@
     </div>
 
 
-    <!-- RIEPILOGO MENSILE: metà sinistra tabella, metà destra libera -->
+    <!-- RIEPILOGO MENSILE + PROIEZIONE COMPOUND -->
     <div class="section-label">Riepilogo mensile</div>
     <div class="mensile-row">
-      <div class="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Mese</th>
-              <th>Inizio</th>
-              <th>Fine</th>
-              <th>Versamento</th>
-              <th>Rend %</th>
-              <th>Rend annuale</th>
-              <th>Drawdown</th>
-              <th>Volatilità</th>
-            </tr>
-          </thead>
-          <tbody id="monthly-tbody"></tbody>
-        </table>
+      <!-- Proiezione compound spostata qui -->
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="proj-slider">
+          <label>TASSO MENSILE</label>
+          <input type="range" min="0.5" max="5" step="0.1" value="1.5" id="proj-slider" oninput="updateProj(parseFloat(this.value))">
+          <div class="proj-rate"><span id="proj-rate-val">1.5</span>%</div>
+        </div>
+        <div class="proj-slider">
+          <label>VERSAMENTO EXTRA</label>
+          <input type="number" id="versamento-extra" value="0" min="0" step="50"
+            oninput="updateProj(parseFloat(document.getElementById('proj-slider').value))"
+            style="flex:1; background:transparent; border:none; border-bottom:1px solid var(--border2);
+                   color:var(--cyan); font-family:var(--mono); font-size:14px; font-weight:600;
+                   outline:none; padding:4px 8px; text-align:right; width:100%;">
+          <div class="proj-rate" style="min-width:30px;">€</div>
+        </div>
+        <div class="chart-card" style="margin-top:0;">
+          <div class="chart-header"><div class="chart-title">Proiezione compound interest</div></div>
+          <div style="position:relative; height:180px;"><canvas id="projChart"></canvas></div>
+        </div>
+        <div class="metric-grid grid-2">
+          <div class="metric-card hero pos">
+            <div class="metric-label">Proiezione dic 2026</div>
+            <div class="metric-value pos" id="proj-final">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Guadagno atteso</div>
+            <div class="metric-value pos" id="proj-gain">—</div>
+            <div class="metric-sub" id="proj-pct">—</div>
+          </div>
+        </div>
+        <div class="metric-grid grid-2">
+          <div class="metric-card">
+            <div class="metric-label">Equiv. annuale</div>
+            <div class="metric-value pos" id="proj-ann">—</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Mesi rimanenti</div>
+            <div class="metric-value" id="proj-mesi">—</div>
+          </div>
+        </div>
+        <div class="table-card" style="margin-top:0;">
+          <table>
+            <thead>
+              <tr>
+                <th>Mese</th>
+                <th>Valore stimato</th>
+                <th>+/- €</th>
+              </tr>
+            </thead>
+            <tbody id="proj-tbody"></tbody>
+          </table>
+        </div>
       </div>
       <!-- PANNELLO DESTRA: heatmap rendimenti per anno/mese -->
       <div id="mensile-right" style="display:flex; flex-direction:column; gap:10px;">
@@ -486,59 +537,7 @@
       </table>
     </div>
 
-    <!-- PROIEZIONE -->
-    <div class="section-label">Proiezione a dicembre 2026</div>
-    <div class="proj-slider">
-      <label>TASSO MENSILE</label>
-      <input type="range" min="0.5" max="5" step="0.1" value="1.5" id="proj-slider" oninput="updateProj(parseFloat(this.value))">
-      <div class="proj-rate"><span id="proj-rate-val">1.5</span>%</div>
-    </div>
-    <div class="proj-slider" style="margin-bottom:14px;">
-      <label>VERSAMENTO EXTRA</label>
-      <input type="number" id="versamento-extra" value="0" min="0" step="50"
-        oninput="updateProj(parseFloat(document.getElementById('proj-slider').value))"
-        style="flex:1; background:transparent; border:none; border-bottom:1px solid var(--border2);
-               color:var(--cyan); font-family:var(--mono); font-size:14px; font-weight:600;
-               outline:none; padding:4px 8px; text-align:right; width:100%;">
-      <div class="proj-rate" style="min-width:30px;">€</div>
-    </div>
-    <div class="two-col">
-      <div>
-        <div class="metric-grid grid-2" style="margin-bottom:10px;">
-          <div class="metric-card hero pos">
-            <div class="metric-label">Proiezione dic 2026</div>
-            <div class="metric-value pos" id="proj-final">—</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Guadagno atteso</div>
-            <div class="metric-value pos" id="proj-gain">—</div>
-            <div class="metric-sub" id="proj-pct">—</div>
-          </div>
-        </div>
-        <div class="metric-grid grid-2">
-          <div class="metric-card">
-            <div class="metric-label">Equiv. annuale</div>
-            <div class="metric-value pos" id="proj-ann">—</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Mesi rimanenti</div>
-            <div class="metric-value" id="proj-mesi">—</div>
-          </div>
-        </div>
-      </div>
-      <div class="table-card" style="margin-top:0;">
-        <table>
-          <thead>
-            <tr>
-              <th>Mese</th>
-              <th>Valore stimato</th>
-              <th>+/- €</th>
-            </tr>
-          </thead>
-          <tbody id="proj-tbody"></tbody>
-        </table>
-      </div>
-    </div>
+
 
   </div><!-- end dashboard -->
 </div><!-- end main -->
