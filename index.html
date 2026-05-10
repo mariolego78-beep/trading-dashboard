@@ -118,8 +118,8 @@
   .metric-value.neg { color: var(--red); }
   .metric-sub { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-top: 7px; letter-spacing: 0.03em; }
 
-  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; margin-top: 10px; box-shadow: var(--shadow-card); }
-  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px 14px; margin-top: 10px; box-shadow: var(--shadow-card); }
+  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .chart-title { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text3); }
   .chart-tabs { display: flex; gap: 5px; }
   .chart-tab { font-family: var(--mono); font-size: 9px; padding: 4px 12px; border: 1px solid var(--border); background: transparent; color: var(--text3); cursor: pointer; border-radius: 20px; letter-spacing: 0.1em; transition: all 0.2s; }
@@ -148,7 +148,7 @@
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
   .charts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-  .chart-card-sm { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-card); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .chart-card-sm { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px 14px; box-shadow: var(--shadow-card); transition: transform 0.2s ease, box-shadow 0.2s ease; }
   .chart-card-sm:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
   .donut-wrap { display: flex; align-items: center; justify-content: center; gap: 28px; }
   .donut-legend { display: flex; flex-direction: column; gap: 14px; }
@@ -282,50 +282,50 @@
             <button class="chart-tab" onclick="setChartRange('1m', this)">1M</button>
           </div>
         </div>
-        <div style="position:relative; height:160px;"><canvas id="portfolioChart"></canvas></div>
+        <div style="position:relative; height:210px;"><canvas id="portfolioChart"></canvas></div>
       </div>
       <div class="chart-card" style="margin-top:0;">
         <div class="chart-header"><div class="chart-title">Rendimenti mensili %</div></div>
-        <div style="position:relative; height:160px;"><canvas id="barChart"></canvas></div>
+        <div style="position:relative; height:210px;"><canvas id="barChart"></canvas></div>
       </div>
       <div class="chart-card" style="margin-top:0; display:flex; flex-direction:column; justify-content:space-between;">
-        <div class="chart-header" style="margin-bottom:10px;"><div class="chart-title">Breakeven versamenti</div></div>
-        <div style="flex:1; display:flex; flex-direction:column; gap:14px; justify-content:center;">
+        <div class="chart-header" style="margin-bottom:6px;"><div class="chart-title">Breakeven versamenti</div></div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px; justify-content:center;">
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:5px;">Tasso minimo necessario</div>
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:3px;">Tasso minimo necessario</div>
             <div id="bk-rate" style="font-family:var(--mono); font-size:22px; font-weight:600; color:var(--yellow);">—</div>
-            <div style="font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:3px;">per coprire i versamenti</div>
+            <div style="font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:2px;">per coprire i versamenti</div>
           </div>
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:5px;">Tuo rendimento medio</div>
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:3px;">Tuo rendimento medio</div>
             <div id="bk-current" style="font-family:var(--mono); font-size:22px; font-weight:600; color:var(--cyan);">—</div>
           </div>
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">Margine di sicurezza</div>
-            <div style="background:var(--bg3); border-radius:4px; height:8px; overflow:hidden; border:1px solid var(--border);">
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">Margine di sicurezza</div>
+            <div style="background:var(--bg3); border-radius:4px; height:7px; overflow:hidden; border:1px solid var(--border);">
               <div id="bk-bar" style="height:100%; border-radius:4px; transition:width 0.6s ease; width:0%;"></div>
             </div>
-            <div id="bk-margin" style="font-family:var(--mono); font-size:13px; font-weight:600; margin-top:6px;">—</div>
+            <div id="bk-margin" style="font-family:var(--mono); font-size:13px; font-weight:600; margin-top:4px;">—</div>
           </div>
         </div>
       </div>
       <div class="chart-card" style="margin-top:0; display:flex; flex-direction:column; justify-content:space-between;">
-        <div class="chart-header" style="margin-bottom:10px;"><div class="chart-title">Obiettivo €15.000</div></div>
-        <div style="flex:1; display:flex; flex-direction:column; gap:14px; justify-content:center;">
+        <div class="chart-header" style="margin-bottom:6px;"><div class="chart-title">Obiettivo €15.000</div></div>
+        <div style="flex:1; display:flex; flex-direction:column; gap:10px; justify-content:center;">
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:5px;">Mancano</div>
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:3px;">Mancano</div>
             <div id="obj-mancano" style="font-family:var(--mono); font-size:22px; font-weight:600; color:var(--cyan);">—</div>
-            <div id="obj-data-stim" style="font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:3px;">—</div>
+            <div id="obj-data-stim" style="font-family:var(--mono); font-size:10px; color:var(--text3); margin-top:2px;">—</div>
           </div>
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:6px;">Progressione</div>
-            <div style="background:var(--bg3); border-radius:4px; height:8px; overflow:hidden; border:1px solid var(--border);">
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:4px;">Progressione</div>
+            <div style="background:var(--bg3); border-radius:4px; height:7px; overflow:hidden; border:1px solid var(--border);">
               <div id="obj-bar" style="height:100%; border-radius:4px; background:linear-gradient(90deg, var(--cyan2), var(--cyan)); transition:width 0.6s ease; width:0%;"></div>
             </div>
-            <div id="obj-pct" style="font-family:var(--mono); font-size:13px; font-weight:600; color:var(--cyan); margin-top:6px;">—</div>
+            <div id="obj-pct" style="font-family:var(--mono); font-size:13px; font-weight:600; color:var(--cyan); margin-top:4px;">—</div>
           </div>
           <div>
-            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:5px;">Stima arrivo (tasso medio)</div>
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.15em; text-transform:uppercase; margin-bottom:3px;">Stima arrivo (tasso medio)</div>
             <div id="obj-mesi" style="font-family:var(--mono); font-size:16px; font-weight:600; color:var(--yellow);">—</div>
           </div>
         </div>
@@ -337,20 +337,20 @@
     <div style="display:grid; grid-template-columns: 1fr 1.6fr; gap:10px; margin-top:0;">
       <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Drawdown mensile %</div></div>
-        <div style="position:relative; height:200px;"><canvas id="ddChart"></canvas></div>
+        <div style="position:relative; height:230px;"><canvas id="ddChart"></canvas></div>
       </div>
       <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Proiezione compound interest</div></div>
-        <div style="position:relative; height:200px;"><canvas id="projChart"></canvas></div>
+        <div style="position:relative; height:230px;"><canvas id="projChart"></canvas></div>
       </div>
     </div>
     <!-- Seconda riga: Donut + Alpha + Profit Factor -->
     <div style="display:grid; grid-template-columns: 1fr 1.4fr 1fr; gap:10px; margin-top:10px;">
       <div class="chart-card-sm" style="">
         <div class="chart-header"><div class="chart-title">Distribuzione giorni pos / neg</div></div>
-        <div class="donut-wrap" style="height:160px;">
-          <div style="position:relative; height:120px; width:120px; flex-shrink:0;"><canvas id="donutChart"></canvas></div>
-          <div class="donut-legend">
+        <div class="donut-wrap" style="height:140px;">
+          <div style="position:relative; height:110px; width:110px; flex-shrink:0;"><canvas id="donutChart"></canvas></div>
+          <div class="donut-legend" style="gap:10px;">
             <div class="donut-legend-item">
               <div class="donut-dot" style="background:var(--green)"></div>
               <div>
@@ -479,11 +479,11 @@
     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
       <div class="chart-card" style="margin-top:0; padding:14px;">
         <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Rendimento cumulato % per anno</div></div>
-        <div style="position:relative; height:150px;"><canvas id="yoyChart"></canvas></div>
+        <div style="position:relative; height:190px;"><canvas id="yoyChart"></canvas></div>
       </div>
       <div class="chart-card" style="margin-top:0; padding:14px;">
         <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Confronto mese per mese</div></div>
-        <div style="position:relative; height:150px;"><canvas id="yoyBarChart"></canvas></div>
+        <div style="position:relative; height:190px;"><canvas id="yoyBarChart"></canvas></div>
       </div>
     </div>
     <div class="table-card" style="margin-bottom:10px;">
