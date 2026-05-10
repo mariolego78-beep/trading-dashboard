@@ -271,7 +271,7 @@
     </div>
 
     <div class="section-label">Andamento portafoglio</div>
-    <div style="display:grid; grid-template-columns: 3fr 1.4fr 1fr 1fr; gap:10px; margin-top:0;">
+    <div style="display:grid; grid-template-columns: 3fr 1fr 1fr; gap:10px; margin-top:0;">
       <div class="chart-card" style="margin-top:0;">
         <div class="chart-header">
           <div class="chart-title">Valore portafoglio nel tempo</div>
@@ -283,10 +283,6 @@
           </div>
         </div>
         <div style="position:relative; height:210px;"><canvas id="portfolioChart"></canvas></div>
-      </div>
-      <div class="chart-card" style="margin-top:0;">
-        <div class="chart-header"><div class="chart-title">Rendimenti mensili %</div></div>
-        <div style="position:relative; height:210px;"><canvas id="barChart"></canvas></div>
       </div>
       <div class="chart-card" style="margin-top:0; display:flex; flex-direction:column; justify-content:space-between;">
         <div class="chart-header" style="margin-bottom:6px;"><div class="chart-title">Breakeven versamenti</div></div>
@@ -333,19 +329,24 @@
     </div>
 
     <div class="section-label">Analisi grafica</div>
-    <!-- Prima riga: Drawdown largo + Compound Interest largo -->
-    <div style="display:grid; grid-template-columns: 1fr 1.6fr; gap:10px; margin-top:0;">
+    <div class="section-label">Analisi grafica</div>
+    <!-- Prima riga: Drawdown + Rendimenti mensili (con label) + Compound Interest -->
+    <div style="display:grid; grid-template-columns: 1fr 1.4fr 1.6fr; gap:10px; margin-top:0;">
       <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Drawdown mensile %</div></div>
         <div style="position:relative; height:230px;"><canvas id="ddChart"></canvas></div>
+      </div>
+      <div class="chart-card-sm">
+        <div class="chart-header"><div class="chart-title">Rendimenti mensili %</div></div>
+        <div style="position:relative; height:230px;"><canvas id="barChart"></canvas></div>
       </div>
       <div class="chart-card-sm">
         <div class="chart-header"><div class="chart-title">Proiezione compound interest</div></div>
         <div style="position:relative; height:230px;"><canvas id="projChart"></canvas></div>
       </div>
     </div>
-    <!-- Seconda riga: Donut + Alpha + Profit Factor -->
-    <div style="display:grid; grid-template-columns: 1fr 1.4fr 1fr; gap:10px; margin-top:10px;">
+    <!-- Seconda riga: Donut (piccolo) + Alpha (medio) + Profit Factor (piccolo) -->
+    <div style="display:grid; grid-template-columns: 0.55fr 1fr 0.55fr; gap:10px; margin-top:10px;">
       <div class="chart-card-sm" style="">
         <div class="chart-header"><div class="chart-title">Distribuzione giorni pos / neg</div></div>
         <div class="donut-wrap" style="height:140px;">
@@ -952,11 +953,35 @@ function buildBarChart(mensile, mKeys) {
   const values = mensile.map(r => parsePct(r[mKeys[4]]) * 100);
   const colors = values.map(v => v >= 0 ? 'rgba(0,210,255,0.7)' : 'rgba(255,77,106,0.7)');
   const borderColors = values.map(v => v >= 0 ? '#00d2ff' : '#ff4d6a');
+
+  // Plugin inline per label sopra/sotto le barre
+  const barLabelPlugin = {
+    id: 'barLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data, scales: { x, y } } = chart;
+      ctx.save();
+      ctx.font = '500 9px "IBM Plex Mono"';
+      ctx.textAlign = 'center';
+      data.datasets[0].data.forEach((val, i) => {
+        if (val === null || val === undefined) return;
+        const meta = chart.getDatasetMeta(0);
+        const bar = meta.data[i];
+        const xPos = bar.x;
+        const isPos = val >= 0;
+        const yPos = isPos ? bar.y - 4 : bar.y + 11;
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fillText((isPos ? '+' : '') + val.toFixed(1) + '%', xPos, yPos);
+      });
+      ctx.restore();
+    }
+  };
+
   if (barChart) barChart.destroy();
   barChart = new Chart(document.getElementById('barChart').getContext('2d'), {
     type: 'bar',
     data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: borderColors, borderWidth: 1, borderRadius: 3 }] },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d1410', borderColor: 'rgba(0,210,255,0.16)', borderWidth: 1, titleColor: '#3d5c45', bodyColor: '#eaf5ee', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 11 }, callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' } } }, scales: { x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } }, y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } } } }
+    plugins: [barLabelPlugin],
+    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 18 } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d1410', borderColor: 'rgba(0,210,255,0.16)', borderWidth: 1, titleColor: '#3d5c45', bodyColor: '#eaf5ee', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 11 }, callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' } } }, scales: { x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } }, y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } } } }
   });
 }
 
