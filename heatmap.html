@@ -689,15 +689,32 @@ function renderHeatmap(rows) {
   document.getElementById('lastUpdate').textContent = 'Aggiornato: ' + now.toLocaleTimeString('it-IT');
 }
 
+async function fetchWithProxy(url) {
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://cors-anywhere.herokuapp.com/${url}`,
+  ];
+  for (const proxy of proxies) {
+    try {
+      const resp = await fetch(proxy);
+      if (resp.ok) {
+        const text = await resp.text();
+        if (text && text.length > 10) return text;
+      }
+    } catch(e) { continue; }
+  }
+  // ultimo tentativo diretto
+  const resp = await fetch(url);
+  return await resp.text();
+}
+
 async function loadData() {
   const url = document.getElementById('csvUrl').value.trim() || localStorage.getItem(STORAGE_KEY) || DEFAULT_URL;
   document.getElementById('heatmap').innerHTML = '<div class="loading-screen"><div class="loading-bar"><div class="loading-bar-inner"></div></div><div class="loading-text">Caricamento dati...</div></div>';
 
   try {
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-    let resp = await fetch(proxyUrl);
-    if (!resp.ok) resp = await fetch(url);
-    const text = await resp.text();
+    const text = await fetchWithProxy(url);
     const rows = parseCSV(text);
     if (!rows.length) throw new Error('Nessun dato trovato');
     renderHeatmap(rows);
