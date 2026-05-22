@@ -654,6 +654,9 @@ async function init() {
 
     const rendMedi = mensile.map(r => parsePct(r[mKeys[4]]));
     const rendMedio = rendMedi.reduce((a, b) => a + b, 0) / rendMedi.length;
+    const rendMediSorted = [...rendMedi].sort((a, b) => a - b);
+    const mid = Math.floor(rendMediSorted.length / 2);
+    const rendMediana = rendMediSorted.length % 2 !== 0 ? rendMediSorted[mid] : (rendMediSorted[mid - 1] + rendMediSorted[mid]) / 2;
     document.getElementById('rend-medio').textContent = '+' + (rendMedio * 100).toFixed(2) + '%';
     window._rendMedio = rendMedio;
 
@@ -681,9 +684,9 @@ async function init() {
     document.getElementById('obj-mancano').textContent = mancano > 0 ? '+' + fmt(mancano) : '🎯 Raggiunto!';
     document.getElementById('obj-bar').style.width = pctObj.toFixed(1) + '%';
     document.getElementById('obj-pct').textContent = pctObj.toFixed(1) + '% raggiunto';
-    if (mancano > 0 && rendMedio > 0) {
+    if (mancano > 0 && rendMediana > 0) {
       let sim = valAttuale, mesiObj = 0;
-      while (sim < OBIETTIVO && mesiObj < 240) { sim = sim * (1 + rendMedio) + VERSAMENTO_MENSILE; mesiObj++; }
+      while (sim < OBIETTIVO && mesiObj < 240) { sim = sim * (1 + rendMediana) + VERSAMENTO_MENSILE; mesiObj++; }
       const dataArr = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
       const now2 = new Date();
       const meseFin = (now2.getMonth() + mesiObj) % 12;
