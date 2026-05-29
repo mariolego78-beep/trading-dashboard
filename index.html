@@ -841,7 +841,8 @@ function updateProj(rate, base) {
   const mesiDic = 12 - now.getMonth();
   document.getElementById('proj-mesi').textContent = mesiDic + ' mesi';
   const extra = parseFloat(document.getElementById('versamento-extra')?.value) || 0;
-  const projMesi = ['Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const tuttiMesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const projMesi = tuttiMesi.slice(now.getMonth() + 1);
   const valori = [];
   let v = base;
   for (let i = 0; i < mesiDic; i++) {
@@ -1016,7 +1017,8 @@ function buildDonutChart(posNeg) {
 function buildProjChart(base, extra = 0) {
   const rates = [0.5, 1.0, 1.5, 2.0, 3.0];
   const colors = ['#4a5280', '#8892b0', '#00d2ff', '#ffd166', '#ff4d6a'];
-  const mesiNomi = ['Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const tuttiMesiProj = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  const mesiNomi = tuttiMesiProj.slice(now.getMonth() + 1);
   const now = new Date();
   const mesiDic = 12 - now.getMonth();
   const labels = mesiNomi.slice(0, mesiDic).map(m => m + ' 26');
@@ -1258,6 +1260,8 @@ function buildYoY(mensile, mKeys) {
   const tbody = document.getElementById('yoy-tbody');
   let rows = '';
   for (let m = 0; m < 12; m++) {
+    const hasSome = anniShow.some(a => byYear[a][m] !== null);
+    if (!hasSome) continue;
     rows += `<tr><td>${mesiNomi[m]}</td>`;
     anniShow.forEach((anno, i) => {
       const v = byYear[anno][m];
