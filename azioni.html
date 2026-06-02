@@ -354,14 +354,14 @@ function makeChart(id,type,data,opts){
 
 // Posizioni aperte con ticker Yahoo Finance
 const OPEN_POSITIONS=[
-  {ticker:'TSM',  qty:4,  prezzoIn:227.85},
+  {ticker:'TSM',  qty:4,  prezzoIn:227.85, maxPrice:300},
   {ticker:'NVDA', qty:9,  prezzoIn:121.14},
   {ticker:'SMCI', qty:18, prezzoIn:26.45},
   {ticker:'RACE', qty:3,  prezzoIn:308.58},
   {ticker:'SOFI', qty:18, prezzoIn:14.64},
 ];
 
-async function fetchPrice(ticker){
+async function fetchPrice(ticker, maxPrice=null){
   const url=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
   const proxies=[
     u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
@@ -372,8 +372,16 @@ async function fetchPrice(ticker){
       const r=await fetch(proxy(url),{signal:AbortSignal.timeout(8000)});
       if(r.ok){
         const j=await r.json();
-        const price=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
-        if(price&&!isNaN(price))return parseFloat(price);
+        const meta=j?.chart?.result?.[0]?.meta;
+        let price=meta?.regularMarketPrice;
+        if(price&&!isNaN(price)){
+          // Se maxPrice definito e prezzo supera soglia, è valuta sbagliata
+          if(maxPrice&&price>maxPrice){
+            // TSM: TWD->USD tasso ~32
+            price=price/32;
+          }
+          return parseFloat(price);
+        }
       }
     }catch{}
   }
@@ -384,13 +392,23 @@ async function loadLivePrices(saldoRealizzato){
   document.getElementById('kSaldo').textContent='...';
   document.getElementById('kSaldoSub').textContent='caricamento prezzi live...';
   
+  // Prendi tasso EUR/USD live
+  let eurUsd=1.08; // fallback
+  try{
+    const fxPrice=await fetchPrice('EURUSD=X');
+    if(fxPrice&&fxPrice>0.5&&fxPrice<2) eurUsd=fxPrice;
+  }catch{}
+  console.log('EUR/USD rate:',eurUsd);
+
   let totalOpenValue=0;
   let totalOpenCost=0;
   const results=[];
   
   await Promise.all(OPEN_POSITIONS.map(async pos=>{
-    const price=await fetchPrice(pos.ticker);
+    let price=await fetchPrice(pos.ticker, pos.maxPrice);
     if(price){
+      // Converti USD -> EUR
+      price=price/eurUsd;
       const value=price*pos.qty;
       const cost=pos.prezzoIn*pos.qty;
       const pnlOpen=value-cost;
