@@ -271,7 +271,8 @@ tr:hover td{background:var(--bg3)}
 <div class="footer">MARIO TRADING DASHBOARD &nbsp;|&nbsp; GOOGLE SHEETS LIVE &nbsp;|&nbsp; AGG: <span id="lastUpdate">—</span></div>
 
 <script>
-const SHEET_ID='1xnHfYtVBfCMCFvRtw6sq8X6LoXNcs2z_ZqxkjkjBwNQ';
+const URL_TRADELOG='https://docs.google.com/spreadsheets/d/e/2PACX-1vTALoSLHROF_yPZ-7IaubNCcMKdHqczo05X7KA5_bAXUef-b9Dpjk7eFsrM3TIx7RTkzwRCA_tYRKGP/pub?gid=2134643969&single=true&output=csv';
+const URL_MENSILE='https://docs.google.com/spreadsheets/d/e/2PACX-1vTALoSLHROF_yPZ-7IaubNCcMKdHqczo05X7KA5_bAXUef-b9Dpjk7eFsrM3TIx7RTkzwRCA_tYRKGP/pub?gid=329490709&single=true&output=csv';
 
 const PROXIES=[
   u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
@@ -280,17 +281,12 @@ const PROXIES=[
 ];
 
 async function fetchCSV(tabName){
-  const urls=[
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`,
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(tabName)}`
-  ];
-  for(const base of urls){
-    for(const proxy of PROXIES){
-      try{
-        const r=await fetch(proxy(base),{signal:AbortSignal.timeout(10000)});
-        if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('allowlist')&&!t.includes('<!DOCTYPE'))return t;}
-      }catch{}
-    }
+  const url=tabName==='1_TRADE_LOG'?URL_TRADELOG:URL_MENSILE;
+  for(const proxy of PROXIES){
+    try{
+      const r=await fetch(proxy(url),{signal:AbortSignal.timeout(10000)});
+      if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('allowlist')&&!t.includes('<!DOCTYPE'))return t;}
+    }catch{}
   }
   return null;
 }
