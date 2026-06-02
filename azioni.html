@@ -313,8 +313,9 @@ function excelDate(n){
 
 function parseNum(s){
   if(s===null||s===undefined||s==='')return NaN;
-  // gestisce sia punto che virgola come separatore decimale
-  return parseFloat(String(s).replace(',','.'));
+  // rimuove €, spazi, e gestisce virgola come separatore decimale
+  const clean=String(s).replace(/[€ ]/g,'').replace(',','.');
+  return parseFloat(clean);
 }
 
 function fmtEur(n,sign=true){
@@ -370,7 +371,7 @@ async function load(){
         winLoss:wl,status,
         pnlCum:parseNum(r[20])||0,
         saldo:parseNum(r[21])||0,
-        drawdown:parseNum(r[23])||0,
+        drawdown:parseNum(r[25])||0,
       });
     }
   }
