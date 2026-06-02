@@ -128,7 +128,7 @@ tr:hover td{background:var(--bg3)}
   <div class="kpi-card">
     <div class="kpi-label">ROI Netto %</div>
     <div class="kpi-value" id="kRoi">—</div>
-    <div class="kpi-sub">su cap. tot. investito</div>
+    <div class="kpi-sub">su trade chiusi / cap. iniziale</div>
   </div>
   <div class="kpi-card yellow">
     <div class="kpi-label">Win Rate</div>
@@ -396,7 +396,7 @@ async function load(){
   const saldo=closed.length>0?closed[closed.length-1].saldo:CAP_INIZ;
   const pnlCum=closed.length>0?closed[closed.length-1].pnlCum:0;
   const pnlNetto=saldo-CAP_TOT;
-  const roi=(pnlNetto/CAP_TOT)*100;
+  const roi=(pnlCum/CAP_INIZ)*100;  // ROI su trade chiusi vs cap. iniziale
   const winRate=closed.length>0?(wins.length/closed.length)*100:0;
   const avgWin=wins.length>0?wins.reduce((s,t)=>s+t.pnl,0)/wins.length:0;
   const avgLoss=losses.length>0?losses.reduce((s,t)=>s+t.pnl,0)/losses.length:0;
