@@ -311,6 +311,12 @@ function excelDate(n){
   return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'});
 }
 
+function parseNum(s){
+  if(s===null||s===undefined||s==='')return NaN;
+  // gestisce sia punto che virgola come separatore decimale
+  return parseFloat(String(s).replace(',','.'));
+}
+
 function fmtEur(n,sign=true){
   const v=parseFloat(n);
   if(isNaN(v))return'—';
@@ -355,16 +361,16 @@ async function load(){
       const wl=(r[18]||'').trim();
       trades.push({
         n:r[0],dataIn:r[1],ticker:(r[2]||'').trim().toUpperCase(),
-        qty:parseFloat(r[4])||0,
-        prezzoIn:parseFloat(r[5])||0,
-        sl:parseFloat(r[6])||0,
-        pnl:parseFloat(r[15])||0,
-        rMult:parseFloat(r[16])||0,
+        qty:parseNum(r[4])||0,
+        prezzoIn:parseNum(r[5])||0,
+        sl:parseNum(r[6])||0,
+        pnl:parseNum(r[15])||0,
+        rMult:parseNum(r[16])||0,
         durata:parseInt(r[17])||0,
         winLoss:wl,status,
-        pnlCum:parseFloat(r[20])||0,
-        saldo:parseFloat(r[21])||0,
-        drawdown:parseFloat(r[23])||0,
+        pnlCum:parseNum(r[20])||0,
+        saldo:parseNum(r[21])||0,
+        drawdown:parseNum(r[23])||0,
       });
     }
   }
@@ -389,7 +395,8 @@ async function load(){
   const avgR=rmultsArr.length>0?rmultsArr.reduce((a,b)=>a+b,0)/rmultsArr.length:0;
   const maxR=rmultsArr.length>0?Math.max(...rmultsArr):0;
   const ddArr=trades.map(t=>t.drawdown||0);
-  const maxDD=ddArr.length>0?Math.min(...ddArr):0;
+  let maxDD=ddArr.length>0?Math.min(...ddArr):0;
+  if(Math.abs(maxDD)>1)maxDD=maxDD/100; // converti % in decimale se necessario
   const durate=closed.filter(t=>t.durata>0).map(t=>t.durata);
   const avgDur=durate.length>0?durate.reduce((a,b)=>a+b,0)/durate.length:0;
   const maxDur=durate.length>0?Math.max(...durate):0;
@@ -498,9 +505,9 @@ async function load(){
       if(!r[0]||r[0].trim()===''||r[0]==='TOTALE')continue;
       mData.push({
         anno:r[0],mese:r[1]||'',
-        pnl:parseFloat(r[6])||0,
-        saldo:parseFloat(r[8])||0,
-        wr:parseFloat(r[5])||0,
+        pnl:parseNum(r[6])||0,
+        saldo:parseNum(r[8])||0,
+        wr:parseNum(r[5])||0,
         tc:parseInt(r[2])||0
       });
     }
@@ -544,7 +551,7 @@ async function load(){
   makeChart('drawdownChart','line',{
     labels:closed.map((_,i)=>i+1),
     datasets:[{
-      data:closed.map(t=>(t.drawdown||0)*100),
+      data:closed.map(t=>{const d=t.drawdown||0;return Math.abs(d)>1?d:d*100;}),  // gestisce sia decimale che %
       borderColor:'#ff3355',backgroundColor:ddG,
       borderWidth:1.5,pointRadius:0,fill:true,tension:0.3
     }]
@@ -616,7 +623,7 @@ async function load(){
     const tr=document.createElement('tr');
     tr.innerHTML=`<td style="font-family:var(--sans);font-weight:600">${m.mese.substring(0,3)} ${m.anno}</td>
       <td style="color:var(--text-dim)">${m.tc}</td>
-      <td class="${m.wr>=0.5?'win':'loss'}">${m.wr>0?(m.wr*100).toFixed(0)+'%':'—'}</td>
+      <td class="${m.wr>=0.5||m.wr>=50?'win':'loss'}">${m.wr>0?(m.wr>1?m.wr.toFixed(0):( m.wr*100).toFixed(0))+'%':'—'}</td>
       <td class="${m.pnl>=0?'win':'loss'}">${fmtEur(m.pnl)}</td>
       <td style="color:var(--text-dim)">€${m.saldo.toFixed(0)}</td>`;
     mb.appendChild(tr);
