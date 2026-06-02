@@ -116,7 +116,7 @@ tr:hover td{background:var(--bg3)}
 <div class="section-label">▸ PERFORMANCE OVERVIEW</div>
 <div class="kpi-grid">
   <div class="kpi-card">
-    <div class="kpi-label">Saldo Attuale</div>
+    <div class="kpi-label">Valore Portafoglio</div>
     <div class="kpi-value" id="kSaldo">—</div>
     <div class="kpi-sub" id="kSaldoSub">—</div>
   </div>
@@ -128,7 +128,7 @@ tr:hover td{background:var(--bg3)}
   <div class="kpi-card">
     <div class="kpi-label">ROI Netto %</div>
     <div class="kpi-value" id="kRoi">—</div>
-    <div class="kpi-sub">su trade chiusi / cap. iniziale</div>
+    <div class="kpi-sub">P&L chiusi / cap. iniziale</div>
   </div>
   <div class="kpi-card yellow">
     <div class="kpi-label">Win Rate</div>
@@ -352,6 +352,85 @@ function makeChart(id,type,data,opts){
   return charts[id];
 }
 
+// Posizioni aperte con ticker Yahoo Finance
+const OPEN_POSITIONS=[
+  {ticker:'TSM',  qty:4,  prezzoIn:227.85},
+  {ticker:'NVDA', qty:9,  prezzoIn:121.14},
+  {ticker:'SMCI', qty:18, prezzoIn:26.45},
+  {ticker:'RACE', qty:3,  prezzoIn:308.58},
+  {ticker:'SOFI', qty:18, prezzoIn:14.64},
+];
+
+async function fetchPrice(ticker){
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+  const proxies=[
+    u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  ];
+  for(const proxy of proxies){
+    try{
+      const r=await fetch(proxy(url),{signal:AbortSignal.timeout(8000)});
+      if(r.ok){
+        const j=await r.json();
+        const price=j?.chart?.result?.[0]?.meta?.regularMarketPrice;
+        if(price&&!isNaN(price))return parseFloat(price);
+      }
+    }catch{}
+  }
+  return null;
+}
+
+async function loadLivePrices(saldoRealizzato){
+  document.getElementById('kSaldo').textContent='...';
+  document.getElementById('kSaldoSub').textContent='caricamento prezzi live...';
+  
+  let totalOpenValue=0;
+  let totalOpenCost=0;
+  const results=[];
+  
+  await Promise.all(OPEN_POSITIONS.map(async pos=>{
+    const price=await fetchPrice(pos.ticker);
+    if(price){
+      const value=price*pos.qty;
+      const cost=pos.prezzoIn*pos.qty;
+      const pnlOpen=value-cost;
+      totalOpenValue+=value;
+      totalOpenCost+=cost;
+      results.push({...pos,price,value,pnlOpen});
+    }
+  }));
+  
+  const saldoReale=saldoRealizzato+totalOpenValue-totalOpenCost;
+  // saldoReale = saldo realizzato + gain/loss non realizzato posizioni aperte
+  
+  const saldoEl=document.getElementById('kSaldo');
+  saldoEl.textContent='€'+Math.round(saldoReale).toLocaleString('it-IT');
+  saldoEl.className='kpi-value '+(saldoReale>=2821?'':'red');
+  
+  const pnlOpenTot=totalOpenValue-totalOpenCost;
+  document.getElementById('kSaldoSub').textContent=
+    'realiz. €'+Math.round(saldoRealizzato)+' | open '+(pnlOpenTot>=0?'+':'')+pnlOpenTot.toFixed(0)+'€';
+  
+  // Aggiorna tabella posizioni aperte con prezzi live
+  if(results.length>0){
+    const ob=document.getElementById('openBody');
+    ob.innerHTML='';
+    results.forEach(p=>{
+      const isPos=p.pnlOpen>=0;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td style="font-family:var(--sans);font-weight:700;color:var(--yellow);letter-spacing:1px">${p.ticker}</td>
+        <td>${p.qty}</td>
+        <td>€${p.price.toFixed(2)}</td>
+        <td class="${isPos?'win':'loss'}">${isPos?'+':''}€${p.pnlOpen.toFixed(0)}</td>`;
+      ob.appendChild(tr);
+    });
+    // Aggiorna header tabella open
+    document.querySelector('#openBody').closest('table').querySelector('thead tr').innerHTML=
+      '<th>Ticker</th><th>Qty</th><th>Prezzo Live</th><th>P&L Open</th>';
+  }
+}
+
 async function load(){
   // === TRADE LOG ===
   const tlRaw=await fetchCSV('1_TRADE_LOG');
@@ -396,7 +475,7 @@ async function load(){
   const saldo=closed.length>0?closed[closed.length-1].saldo:CAP_INIZ;
   const pnlCum=closed.length>0?closed[closed.length-1].pnlCum:0;
   const pnlNetto=saldo-CAP_TOT;
-  const roi=(pnlCum/CAP_INIZ)*100;  // ROI su trade chiusi vs cap. iniziale
+  const roi=(pnlCum/CAP_INIZ)*100;
   const winRate=closed.length>0?(wins.length/closed.length)*100:0;
   const avgWin=wins.length>0?wins.reduce((s,t)=>s+t.pnl,0)/wins.length:0;
   const avgLoss=losses.length>0?losses.reduce((s,t)=>s+t.pnl,0)/losses.length:0;
@@ -417,7 +496,7 @@ async function load(){
 
   // KPI ROW 1
   setEl('kSaldo','€'+saldo.toFixed(0),saldo>=CAP_TOT?'':'red');
-  document.getElementById('kSaldoSub').textContent='cap. tot. €'+CAP_TOT;
+  document.getElementById('kSaldoSub').textContent='saldo realiz. + pos. aperte live';
   setEl('kPnl',fmtEur(pnlCum),pnlCum>=0?'':'red');
   document.getElementById('kPnlSub').textContent='da inizio attività';
   setEl('kRoi',(roi>=0?'+':'')+roi.toFixed(1)+'%',roi>=0?'':'red');
@@ -654,6 +733,8 @@ async function load(){
   });
 
   document.getElementById('dataStatus').textContent='LIVE DATA';
+  // Carica prezzi live posizioni aperte
+  loadLivePrices(saldo).catch(e=>console.log('Errore prezzi live:',e));
   document.getElementById('lastUpdate').textContent=new Date().toLocaleString('it-IT');
 }
 
