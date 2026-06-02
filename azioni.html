@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MARIO — Trading Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#060a06;--bg2:#0b110b;--bg3:#111a11;--bg4:#172017;--green:#00ff88;--green2:#00cc66;--green3:#009944;--green-dim:#00ff8833;--green-glow:#00ff8866;--red:#ff3355;--red-dim:#ff335533;--yellow:#ffd700;--cyan:#00eeff;--text:#c8e6c8;--text-dim:#5a7a5a;--border:#1e3a1e;--border2:#0f280f;--mono:'Share Tech Mono',monospace;--sans:'Rajdhani',sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.015) 2px,rgba(0,255,136,.015) 4px);pointer-events:none;z-index:1000}
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--bg2);position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:16px}
+.logo{font-family:var(--sans);font-size:22px;font-weight:700;color:var(--green);letter-spacing:3px;text-shadow:0 0 20px var(--green-glow)}
+.logo span{color:var(--text-dim);font-weight:400}
+.header-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-dim)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.header-time{font-size:11px;color:var(--text-dim);letter-spacing:1px}
+.ticker{background:var(--bg2);border-bottom:1px solid var(--border);border-top:1px solid var(--border);overflow:hidden;height:28px;display:flex;align-items:center}
+.ticker-inner{display:flex;gap:40px;animation:ticker 35s linear infinite;white-space:nowrap;font-size:11px;padding-left:20px}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{color:var(--text-dim);display:flex;gap:6px}
+.ti b{color:var(--text)}
+.ti .pos{color:var(--green)}
+.ti .neg{color:var(--red)}
+.main{padding:16px 20px;max-width:1600px;margin:0 auto}
+.section-label{font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:3px;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px;padding-left:2px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:8px}
+.kpi-grid2{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
+.kpi-card{background:var(--bg2);border:1px solid var(--border);padding:12px 14px;position:relative;overflow:hidden;transition:border-color .2s}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--green);opacity:.4}
+.kpi-card.red::before{background:var(--red)}
+.kpi-card.yellow::before{background:var(--yellow)}
+.kpi-card.cyan::before{background:var(--cyan)}
+.kpi-card:hover{border-color:var(--green3)}
+.kpi-label{font-size:9px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-family:var(--sans);font-weight:600}
+.kpi-value{font-size:22px;font-weight:700;color:var(--green);line-height:1;font-family:var(--sans);letter-spacing:1px}
+.kpi-value.red{color:var(--red)}
+.kpi-value.yellow{color:var(--yellow)}
+.kpi-value.cyan{color:var(--cyan)}
+.kpi-value.white{color:#fff}
+.kpi-sub{font-size:10px;color:var(--text-dim);margin-top:4px}
+.mini-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mini-card{background:var(--bg2);border:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:12px}
+.mini-icon{font-size:22px;opacity:.7}
+.mini-label{font-size:9px;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;font-family:var(--sans);font-weight:600}
+.mini-val{font-size:18px;font-family:var(--sans);font-weight:700;color:var(--green)}
+.mini-val.red{color:var(--red)}
+.mini-val.yellow{color:var(--yellow)}
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px}
+.charts-row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.chart-panel{background:var(--bg2);border:1px solid var(--border);padding:14px 16px}
+.panel-title{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:2px;color:var(--text-dim);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.bottom-row{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.table-panel{background:var(--bg2);border:1px solid var(--border);padding:14px 16px;overflow:hidden}
+.open-panel{background:var(--bg2);border:1px solid var(--border);border-top:2px solid var(--yellow);padding:14px 16px}
+.monthly-panel{background:var(--bg2);border:1px solid var(--border);padding:14px 16px;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th{font-family:var(--sans);font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:5px 8px;border-bottom:1px solid var(--border2);white-space:nowrap;font-size:11px}
+tr:hover td{background:var(--bg3)}
+.win{color:var(--green)}
+.loss{color:var(--red)}
+.badge{padding:1px 6px;font-size:9px;font-family:var(--sans);font-weight:600;letter-spacing:1px}
+.badge.win{background:#00ff881a;border:1px solid #00ff8844;color:var(--green)}
+.badge.loss{background:#ff335522;border:1px solid #ff335544;color:var(--red)}
+.heatmap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px}
+.hm-cell{padding:10px 6px;text-align:center;font-size:11px;font-family:var(--sans);font-weight:700;border:1px solid transparent;cursor:default}
+.hm-label{font-size:8px;color:inherit;display:block;margin-bottom:3px;letter-spacing:1px;opacity:.8}
+.loading{display:flex;align-items:center;justify-content:center;height:160px;color:var(--text-dim);font-size:11px;letter-spacing:2px;gap:10px}
+.spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.footer{text-align:center;padding:12px;color:var(--text-dim);font-size:10px;letter-spacing:2px;border-top:1px solid var(--border);margin-top:4px}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--green3)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">MARIO <span>// TRADING DASHBOARD</span></div>
+    <div class="header-status"><div class="dot"></div><span id="dataStatus">CARICAMENTO...</span></div>
+  </div>
+  <div class="header-time" id="clock">--:--:--</div>
+</div>
+
+<div class="ticker">
+  <div class="ticker-inner" id="tickerContent">
+    <span class="ti"><b>NVDA</b><span class="pos">—</span></span>
+    <span class="ti"><b>TSM</b><span class="pos">—</span></span>
+    <span class="ti"><b>PLTR</b><span class="pos">—</span></span>
+    <span class="ti"><b>AMD</b><span class="pos">—</span></span>
+    <span class="ti"><b>AMZN</b><span class="pos">—</span></span>
+    <span class="ti"><b>DELL</b><span class="pos">—</span></span>
+    <span class="ti"><b>GOOGL</b><span class="pos">—</span></span>
+    <span class="ti"><b>RACE</b><span class="pos">—</span></span>
+    <span class="ti"><b>NVDA</b><span class="pos">—</span></span>
+    <span class="ti"><b>TSM</b><span class="pos">—</span></span>
+    <span class="ti"><b>PLTR</b><span class="pos">—</span></span>
+    <span class="ti"><b>AMD</b><span class="pos">—</span></span>
+    <span class="ti"><b>AMZN</b><span class="pos">—</span></span>
+    <span class="ti"><b>DELL</b><span class="pos">—</span></span>
+    <span class="ti"><b>GOOGL</b><span class="pos">—</span></span>
+    <span class="ti"><b>RACE</b><span class="pos">—</span></span>
+  </div>
+</div>
+
+<div class="main">
+
+<div class="section-label">▸ PERFORMANCE OVERVIEW</div>
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-label">Saldo Attuale</div>
+    <div class="kpi-value" id="kSaldo">—</div>
+    <div class="kpi-sub" id="kSaldoSub">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">P&L Cumulativo</div>
+    <div class="kpi-value" id="kPnl">—</div>
+    <div class="kpi-sub" id="kPnlSub">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">ROI Netto %</div>
+    <div class="kpi-value" id="kRoi">—</div>
+    <div class="kpi-sub">su cap. tot. investito</div>
+  </div>
+  <div class="kpi-card yellow">
+    <div class="kpi-label">Win Rate</div>
+    <div class="kpi-value yellow" id="kWinrate">—</div>
+    <div class="kpi-sub" id="kWinSub">—</div>
+  </div>
+  <div class="kpi-card cyan">
+    <div class="kpi-label">Profit Factor</div>
+    <div class="kpi-value cyan" id="kPf">—</div>
+    <div class="kpi-sub">gross win / gross loss</div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-label">Max Drawdown</div>
+    <div class="kpi-value red" id="kDd">—</div>
+    <div class="kpi-sub">dal picco equity</div>
+  </div>
+</div>
+
+<div class="kpi-grid2">
+  <div class="kpi-card">
+    <div class="kpi-label">Trade Totali</div>
+    <div class="kpi-value white" id="kTot">—</div>
+    <div class="kpi-sub" id="kTotSub">—</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">R-Multiple Medio</div>
+    <div class="kpi-value" id="kRmult">—</div>
+    <div class="kpi-sub">max: <span id="kRmax">—</span></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Durata Media</div>
+    <div class="kpi-value white" id="kDur">—</div>
+    <div class="kpi-sub">max: <span id="kDurMax">—</span> gg</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Media Win</div>
+    <div class="kpi-value" id="kMwin">—</div>
+    <div class="kpi-sub">per trade vincente</div>
+  </div>
+  <div class="kpi-card red">
+    <div class="kpi-label">Media Loss</div>
+    <div class="kpi-value red" id="kMloss">—</div>
+    <div class="kpi-sub">per trade perdente</div>
+  </div>
+  <div class="kpi-card yellow">
+    <div class="kpi-label">Cap. Tot. Investito</div>
+    <div class="kpi-value yellow" id="kCap">—</div>
+    <div class="kpi-sub" id="kCapSub">—</div>
+  </div>
+</div>
+
+<div class="mini-cards">
+  <div class="mini-card">
+    <div class="mini-icon">🏆</div>
+    <div>
+      <div class="mini-label">Miglior Trade</div>
+      <div class="mini-val" id="mBest">—</div>
+      <div class="kpi-sub" id="mBestTick">—</div>
+    </div>
+  </div>
+  <div class="mini-card">
+    <div class="mini-icon">💥</div>
+    <div>
+      <div class="mini-label">Peggior Trade</div>
+      <div class="mini-val red" id="mWorst">—</div>
+      <div class="kpi-sub" id="mWorstTick">—</div>
+    </div>
+  </div>
+  <div class="mini-card">
+    <div class="mini-icon">⚡</div>
+    <div>
+      <div class="mini-label">Posizioni Aperte</div>
+      <div class="mini-val yellow" id="mOpen">—</div>
+      <div class="kpi-sub" id="mOpenSub">—</div>
+    </div>
+  </div>
+  <div class="mini-card">
+    <div class="mini-icon">⏱</div>
+    <div>
+      <div class="mini-label">Trade più lungo</div>
+      <div class="mini-val" id="mLong">—</div>
+      <div class="kpi-sub">giorni in posizione</div>
+    </div>
+  </div>
+</div>
+
+<div class="charts-row">
+  <div class="chart-panel">
+    <div class="panel-title">Equity Curve — P&L Cumulativo (€)</div>
+    <div style="height:210px"><canvas id="equityChart"></canvas></div>
+  </div>
+  <div class="chart-panel">
+    <div class="panel-title">Distribuzione R-Multiple</div>
+    <div style="height:210px"><canvas id="distChart"></canvas></div>
+  </div>
+</div>
+
+<div class="charts-row2">
+  <div class="chart-panel">
+    <div class="panel-title">P&L Mensile (€)</div>
+    <div style="height:170px"><canvas id="mensileChart"></canvas></div>
+  </div>
+  <div class="chart-panel">
+    <div class="panel-title">Drawdown Curve (%)</div>
+    <div style="height:170px"><canvas id="drawdownChart"></canvas></div>
+  </div>
+</div>
+
+<div class="chart-panel" style="margin-bottom:12px">
+  <div class="panel-title">Heatmap Rendimenti Mensili</div>
+  <div class="heatmap-grid" id="heatmap"><div class="loading"><div class="spinner"></div> CARICAMENTO...</div></div>
+</div>
+
+<div class="bottom-row">
+  <div class="table-panel">
+    <div class="panel-title">Ultimi Trade Chiusi</div>
+    <table>
+      <thead><tr><th>#</th><th>Ticker</th><th>Data In</th><th>Qty</th><th>P&L €</th><th>R-Mult</th><th>Dur.</th><th>Esito</th></tr></thead>
+      <tbody id="tradeBody"><tr><td colspan="8"><div class="loading"><div class="spinner"></div> CARICAMENTO...</div></td></tr></tbody>
+    </table>
+  </div>
+  <div class="open-panel">
+    <div class="panel-title" style="color:var(--yellow)">⚡ Posizioni Aperte</div>
+    <table>
+      <thead><tr><th>Ticker</th><th>Qty</th><th>Prezzo In</th><th>Stop Loss</th></tr></thead>
+      <tbody id="openBody"><tr><td colspan="4"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+    </table>
+  </div>
+  <div class="monthly-panel">
+    <div class="panel-title">Riepilogo Mensile</div>
+    <table>
+      <thead><tr><th>Mese</th><th>Trade</th><th>Win%</th><th>P&L €</th><th>Saldo</th></tr></thead>
+      <tbody id="monthBody"><tr><td colspan="5"><div class="loading"><div class="spinner"></div></div></td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">MARIO TRADING DASHBOARD &nbsp;|&nbsp; GOOGLE SHEETS LIVE &nbsp;|&nbsp; AGG: <span id="lastUpdate">—</span></div>
+
+<script>
+const SHEET_ID='1xnHfYtVBfCMCFvRtw6sq8X6LoXNcs2z_ZqxkjkjBwNQ';
+
+const PROXIES=[
+  u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u=>u
+];
+
+async function fetchCSV(tabName){
+  const urls=[
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`,
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(tabName)}`
+  ];
+  for(const base of urls){
+    for(const proxy of PROXIES){
+      try{
+        const r=await fetch(proxy(base),{signal:AbortSignal.timeout(10000)});
+        if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('allowlist')&&!t.includes('<!DOCTYPE'))return t;}
+      }catch{}
+    }
+  }
+  return null;
+}
+
+function parseCSV(txt){
+  if(!txt)return[];
+  return txt.trim().split('\n').map(line=>{
+    const cols=[];let cur='',q=false;
+    for(let i=0;i<line.length;i++){
+      if(line[i]==='"'){q=!q;}
+      else if(line[i]===','&&!q){cols.push(cur.trim().replace(/^"|"$/g,''));cur='';}
+      else cur+=line[i];
+    }
+    cols.push(cur.trim().replace(/^"|"$/g,''));
+    return cols;
+  });
+}
+
+function excelDate(n){
+  if(!n||isNaN(n))return'—';
+  const d=new Date(Math.round((parseFloat(n)-25569)*86400000));
+  return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'2-digit'});
+}
+
+function fmtEur(n,sign=true){
+  const v=parseFloat(n);
+  if(isNaN(v))return'—';
+  return(sign&&v>=0?'+':'')+v.toFixed(2)+' €';
+}
+
+function setEl(id,val,cls=''){
+  const e=document.getElementById(id);
+  if(!e)return;
+  e.textContent=val;
+  if(cls)e.className='kpi-value '+cls;
+}
+
+// Charts
+let charts={};
+function makeChart(id,type,data,opts){
+  if(charts[id])charts[id].destroy();
+  const ctx=document.getElementById(id);
+  if(!ctx)return;
+  charts[id]=new Chart(ctx,{type,data,options:{responsive:true,maintainAspectRatio:false,...opts}});
+  return charts[id];
+}
+
+async function load(){
+  // === TRADE LOG ===
+  const tlRaw=await fetchCSV('1_TRADE_LOG');
+  const tlRows=parseCSV(tlRaw);
+
+  let hIdx=-1;
+  for(let i=0;i<tlRows.length;i++){
+    if(tlRows[i][0]==='N°'||tlRows[i][0]==='N\u00b0'){hIdx=i;break;}
+  }
+  // Se non trovato, cerca per "Data Entrata"
+  if(hIdx<0){for(let i=0;i<tlRows.length;i++){if(tlRows[i][1]&&tlRows[i][1].includes('Data')){hIdx=i;break;}}}
+
+  const trades=[];
+  if(hIdx>=0){
+    for(let i=hIdx+1;i<tlRows.length;i++){
+      const r=tlRows[i];
+      if(!r[0]||r[0].trim()==='')continue;
+      const status=(r[19]||'').trim();
+      const wl=(r[18]||'').trim();
+      trades.push({
+        n:r[0],dataIn:r[1],ticker:(r[2]||'').trim().toUpperCase(),
+        qty:parseFloat(r[4])||0,
+        prezzoIn:parseFloat(r[5])||0,
+        sl:parseFloat(r[6])||0,
+        pnl:parseFloat(r[15])||0,
+        rMult:parseFloat(r[16])||0,
+        durata:parseInt(r[17])||0,
+        winLoss:wl,status,
+        pnlCum:parseFloat(r[20])||0,
+        saldo:parseFloat(r[21])||0,
+        drawdown:parseFloat(r[23])||0,
+      });
+    }
+  }
+
+  const closed=trades.filter(t=>t.status==='CLOSED');
+  const open=trades.filter(t=>t.status==='OPEN');
+  const wins=closed.filter(t=>t.winLoss==='WIN');
+  const losses=closed.filter(t=>t.winLoss==='LOSS');
+
+  const CAP_INIZ=1821, VERS=1000, CAP_TOT=CAP_INIZ+VERS;
+  const saldo=closed.length>0?closed[closed.length-1].saldo:CAP_INIZ;
+  const pnlCum=closed.length>0?closed[closed.length-1].pnlCum:0;
+  const pnlNetto=saldo-CAP_TOT;
+  const roi=(pnlNetto/CAP_TOT)*100;
+  const winRate=closed.length>0?(wins.length/closed.length)*100:0;
+  const avgWin=wins.length>0?wins.reduce((s,t)=>s+t.pnl,0)/wins.length:0;
+  const avgLoss=losses.length>0?losses.reduce((s,t)=>s+t.pnl,0)/losses.length:0;
+  const gw=wins.reduce((s,t)=>s+t.pnl,0);
+  const gl=Math.abs(losses.reduce((s,t)=>s+t.pnl,0));
+  const pf=gl>0?gw/gl:(gw>0?99:0);
+  const rmultsArr=closed.map(t=>t.rMult).filter(v=>!isNaN(v));
+  const avgR=rmultsArr.length>0?rmultsArr.reduce((a,b)=>a+b,0)/rmultsArr.length:0;
+  const maxR=rmultsArr.length>0?Math.max(...rmultsArr):0;
+  const ddArr=trades.map(t=>t.drawdown||0);
+  const maxDD=ddArr.length>0?Math.min(...ddArr):0;
+  const durate=closed.filter(t=>t.durata>0).map(t=>t.durata);
+  const avgDur=durate.length>0?durate.reduce((a,b)=>a+b,0)/durate.length:0;
+  const maxDur=durate.length>0?Math.max(...durate):0;
+  const best=closed.length>0?closed.reduce((a,b)=>b.pnl>a.pnl?b:a):{pnl:0,ticker:'—'};
+  const worst=closed.length>0?closed.reduce((a,b)=>b.pnl<a.pnl?b:a):{pnl:0,ticker:'—'};
+
+  // KPI ROW 1
+  setEl('kSaldo','€'+saldo.toFixed(0),saldo>=CAP_TOT?'':'red');
+  document.getElementById('kSaldoSub').textContent='cap. tot. €'+CAP_TOT;
+  setEl('kPnl',fmtEur(pnlCum),pnlCum>=0?'':'red');
+  document.getElementById('kPnlSub').textContent='da inizio attività';
+  setEl('kRoi',(roi>=0?'+':'')+roi.toFixed(1)+'%',roi>=0?'':'red');
+  setEl('kWinrate',winRate.toFixed(1)+'%','yellow');
+  document.getElementById('kWinSub').textContent=wins.length+'W / '+losses.length+'L su '+closed.length;
+  setEl('kPf',pf.toFixed(2),'cyan');
+  setEl('kDd',(maxDD*100).toFixed(1)+'%','red');
+
+  // KPI ROW 2
+  setEl('kTot',trades.length,'white');
+  document.getElementById('kTotSub').textContent=closed.length+' chiusi / '+open.length+' aperti';
+  setEl('kRmult',(avgR>=0?'+':'')+avgR.toFixed(2)+'R',avgR>=0?'':'red');
+  document.getElementById('kRmax').textContent='+'+maxR.toFixed(1)+'R';
+  setEl('kDur',Math.round(avgDur)+' gg','white');
+  document.getElementById('kDurMax').textContent=maxDur;
+  setEl('kMwin','+€'+avgWin.toFixed(2),'');
+  setEl('kMloss','€'+avgLoss.toFixed(2),'red');
+  setEl('kCap','€'+CAP_TOT,'yellow');
+  document.getElementById('kCapSub').textContent='iniz. €'+CAP_INIZ+' + vers. €'+VERS;
+
+  // MINI CARDS
+  setEl('mBest','+€'+best.pnl.toFixed(2),'');
+  document.getElementById('mBestTick').textContent=best.ticker;
+  document.getElementById('mWorst').textContent='€'+worst.pnl.toFixed(2);
+  document.getElementById('mWorstTick').textContent=worst.ticker;
+  document.getElementById('mOpen').textContent=open.length;
+  const openTick=[...new Set(open.map(t=>t.ticker))];
+  document.getElementById('mOpenSub').textContent=openTick.join(', ');
+  document.getElementById('mLong').textContent=maxDur;
+
+  // EQUITY CHART
+  const eqCtx=document.getElementById('equityChart').getContext('2d');
+  const eqG=eqCtx.createLinearGradient(0,0,0,210);
+  eqG.addColorStop(0,'rgba(0,255,136,0.22)');eqG.addColorStop(1,'rgba(0,255,136,0.01)');
+  makeChart('equityChart','line',{
+    labels:closed.map((t,i)=>'#'+(i+1)),
+    datasets:[{
+      label:'P&L Cum.',data:closed.map(t=>t.pnlCum),
+      borderColor:'#00ff88',backgroundColor:eqG,borderWidth:2,
+      pointRadius:closed.length<25?3:0,pointBackgroundColor:'#00ff88',
+      fill:true,tension:0.35
+    }]
+  },{
+    interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{
+      backgroundColor:'#0b110b',borderColor:'#1e3a1e',borderWidth:1,
+      titleColor:'#00ff88',bodyColor:'#c8e6c8',
+      callbacks:{
+        title:items=>closed[items[0].dataIndex]?.ticker||'',
+        label:ctx=>' P&L cum.: '+fmtEur(ctx.raw)
+      }
+    }},
+    scales:{
+      x:{display:false},
+      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',font:{family:'Share Tech Mono',size:10},callback:v=>'€'+v.toFixed(0)}}
+    }
+  });
+
+  // DIST CHART
+  const bk={'<-1R':0,'-1R':0,'0R':0,'0.5R':0,'1R':0,'1.5R':0,'2R+':0};
+  closed.forEach(t=>{
+    const r=t.rMult;
+    if(r<-0.9)bk['<-1R']++;
+    else if(r<-0.1)bk['-1R']++;
+    else if(r<0.3)bk['0R']++;
+    else if(r<0.8)bk['0.5R']++;
+    else if(r<1.3)bk['1R']++;
+    else if(r<1.8)bk['1.5R']++;
+    else bk['2R+']++;
+  });
+  makeChart('distChart','bar',{
+    labels:Object.keys(bk),
+    datasets:[{
+      data:Object.values(bk),
+      backgroundColor:['#ff335599','#ff335577','#5a7a5a55','#00cc6677','#00cc6688','#00ff8888','#00ff88aa'],
+      borderColor:['#ff3355','#ff3355','#5a7a5a','#00cc66','#00cc66','#00ff88','#00ff88'],
+      borderWidth:1,borderRadius:3
+    }]
+  },{
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#0b110b',borderColor:'#1e3a1e',borderWidth:1,titleColor:'#00ff88',bodyColor:'#c8e6c8'}},
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#5a7a5a',font:{size:10}}},
+      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',stepSize:1,font:{size:10}}}
+    }
+  });
+
+  // === MENSILE ===
+  const mRaw=await fetchCSV('4_MENSILE');
+  const mRows=parseCSV(mRaw);
+  let mH=-1;
+  for(let i=0;i<mRows.length;i++){if(mRows[i][0]==='Anno'||mRows[i][1]==='Mese'){mH=i;break;}}
+
+  const mData=[];
+  if(mH>=0){
+    for(let i=mH+1;i<mRows.length;i++){
+      const r=mRows[i];
+      if(!r[0]||r[0].trim()===''||r[0]==='TOTALE')continue;
+      mData.push({
+        anno:r[0],mese:r[1]||'',
+        pnl:parseFloat(r[6])||0,
+        saldo:parseFloat(r[8])||0,
+        wr:parseFloat(r[5])||0,
+        tc:parseInt(r[2])||0
+      });
+    }
+  }
+
+  // MENSILE BAR
+  makeChart('mensileChart','bar',{
+    labels:mData.map(m=>m.mese.substring(0,3)+' '+String(m.anno).substring(2)),
+    datasets:[{
+      data:mData.map(m=>m.pnl),
+      backgroundColor:mData.map(m=>m.pnl>=0?'rgba(0,204,102,0.65)':'rgba(255,51,85,0.65)'),
+      borderColor:mData.map(m=>m.pnl>=0?'#00ff88':'#ff3355'),
+      borderWidth:1,borderRadius:3
+    }]
+  },{
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#0b110b',borderColor:'#1e3a1e',borderWidth:1,titleColor:'#00ff88',bodyColor:'#c8e6c8',callbacks:{label:ctx=>' €'+ctx.raw.toFixed(2)}},
+      afterDraw(chart){
+        const c2=chart.ctx;
+        chart.data.datasets.forEach((ds,di)=>{
+          chart.getDatasetMeta(di).data.forEach((bar,i)=>{
+            const v=ds.data[i];if(v===0)return;
+            c2.fillStyle=v>=0?'#00ff88':'#ff3355';
+            c2.font='bold 8px Share Tech Mono';c2.textAlign='center';
+            c2.fillText((v>=0?'+':'')+v.toFixed(0),bar.x,v>=0?bar.y-4:bar.y+9);
+          });
+        });
+      }
+    },
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#5a7a5a',font:{size:9}}},
+      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',font:{size:9},callback:v=>'€'+v.toFixed(0)}}
+    }
+  });
+
+  // DRAWDOWN
+  const ddCtx=document.getElementById('drawdownChart').getContext('2d');
+  const ddG=ddCtx.createLinearGradient(0,0,0,170);
+  ddG.addColorStop(0,'rgba(255,51,85,0.28)');ddG.addColorStop(1,'rgba(255,51,85,0.02)');
+  makeChart('drawdownChart','line',{
+    labels:closed.map((_,i)=>i+1),
+    datasets:[{
+      data:closed.map(t=>(t.drawdown||0)*100),
+      borderColor:'#ff3355',backgroundColor:ddG,
+      borderWidth:1.5,pointRadius:0,fill:true,tension:0.3
+    }]
+  },{
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' DD: '+ctx.raw.toFixed(2)+'%'}}},
+    scales:{
+      x:{display:false},
+      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',font:{size:9},callback:v=>v.toFixed(1)+'%'}}
+    }
+  });
+
+  // HEATMAP
+  const hm=document.getElementById('heatmap');
+  hm.innerHTML='';
+  const maxAbs=Math.max(...mData.map(m=>Math.abs(m.pnl)),1);
+  mData.forEach(m=>{
+    const intens=Math.min(Math.abs(m.pnl)/maxAbs,1);
+    const c=document.createElement('div');
+    c.className='hm-cell';
+    if(m.pnl>0){c.style.cssText=`background:rgba(0,204,102,${0.12+intens*0.62});border-color:rgba(0,255,136,${0.2+intens*0.4});color:#00ff88`;}
+    else if(m.pnl<0){c.style.cssText=`background:rgba(255,51,85,${0.12+intens*0.62});border-color:rgba(255,51,85,${0.2+intens*0.4});color:#ff3355`;}
+    else{c.style.cssText='background:rgba(90,122,90,0.08);border-color:#1e3a1e;color:#5a7a5a';}
+    c.innerHTML=`<span class="hm-label">${m.mese.substring(0,3)} ${m.anno}</span>${m.pnl>=0?'+':''}${m.pnl.toFixed(0)}€`;
+    hm.appendChild(c);
+  });
+
+  // TRADE TABLE
+  const tb=document.getElementById('tradeBody');
+  tb.innerHTML='';
+  [...closed].reverse().slice(0,20).forEach(t=>{
+    const w=t.winLoss==='WIN';
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="color:var(--text-dim)">${t.n}</td>
+      <td style="font-family:var(--sans);font-weight:700;color:#fff;letter-spacing:1px">${t.ticker}</td>
+      <td style="color:var(--text-dim)">${excelDate(t.dataIn)}</td>
+      <td>${t.qty}</td>
+      <td class="${w?'win':'loss'}">${fmtEur(t.pnl)}</td>
+      <td class="${t.rMult>=0?'win':'loss'}">${(t.rMult>=0?'+':'')}${t.rMult}R</td>
+      <td style="color:var(--text-dim)">${t.durata}g</td>
+      <td><span class="badge ${w?'win':'loss'}">${t.winLoss}</span></td>`;
+    tb.appendChild(tr);
+  });
+
+  // OPEN
+  const ob=document.getElementById('openBody');
+  ob.innerHTML='';
+  if(open.length===0){
+    ob.innerHTML='<tr><td colspan="4" style="color:var(--text-dim);text-align:center;padding:20px;font-size:10px;letter-spacing:1px">NESSUNA POSIZIONE APERTA</td></tr>';
+  }else{
+    const grp={};
+    open.forEach(t=>{
+      if(!grp[t.ticker])grp[t.ticker]={qty:0,prices:[],sl:t.sl};
+      grp[t.ticker].qty+=t.qty;grp[t.ticker].prices.push(t.prezzoIn);
+    });
+    Object.entries(grp).forEach(([tk,g])=>{
+      const avg=g.prices.reduce((a,b)=>a+b,0)/g.prices.length;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td style="font-family:var(--sans);font-weight:700;color:var(--yellow);letter-spacing:1px">${tk}</td>
+        <td>${g.qty}</td><td>€${avg.toFixed(2)}</td><td style="color:var(--red)">€${g.sl.toFixed(2)}</td>`;
+      ob.appendChild(tr);
+    });
+  }
+
+  // MONTHLY TABLE
+  const mb=document.getElementById('monthBody');
+  mb.innerHTML='';
+  [...mData].reverse().forEach(m=>{
+    if(m.tc===0&&m.pnl===0)return;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td style="font-family:var(--sans);font-weight:600">${m.mese.substring(0,3)} ${m.anno}</td>
+      <td style="color:var(--text-dim)">${m.tc}</td>
+      <td class="${m.wr>=0.5?'win':'loss'}">${m.wr>0?(m.wr*100).toFixed(0)+'%':'—'}</td>
+      <td class="${m.pnl>=0?'win':'loss'}">${fmtEur(m.pnl)}</td>
+      <td style="color:var(--text-dim)">€${m.saldo.toFixed(0)}</td>`;
+    mb.appendChild(tr);
+  });
+
+  document.getElementById('dataStatus').textContent='LIVE DATA';
+  document.getElementById('lastUpdate').textContent=new Date().toLocaleString('it-IT');
+}
+
+// CLOCK
+function clock(){
+  const n=new Date();
+  document.getElementById('clock').textContent=
+    n.toLocaleTimeString('it-IT')+' · '+n.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+setInterval(clock,1000);clock();
+
+// INIT
+load().catch(e=>{
+  console.error(e);
+  document.getElementById('dataStatus').textContent='ERRORE DATI';
+  document.getElementById('tradeBody').innerHTML=
+    '<tr><td colspan="8" style="color:var(--red);text-align:center;padding:20px;font-size:11px">'+
+    'Errore caricamento. Verifica che il Google Sheets sia pubblicato pubblicamente (File → Condividi → Pubblica sul web).</td></tr>';
+});
+
+// Auto-refresh ogni 5 min
+setInterval(()=>location.reload(),300000);
+</script>
+</body>
+</html>
