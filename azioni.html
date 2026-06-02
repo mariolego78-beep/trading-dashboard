@@ -364,25 +364,35 @@ const OPEN_POSITIONS=[
 ];
 
 async function fetchPrice(ticker){
-  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+  // Per TSM usiamo endpoint quote che restituisce sempre USD
+  const urls=[
+    `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d&region=US&lang=en-US`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`,
+  ];
   const proxies=[
     u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
     u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   ];
-  for(const proxy of proxies){
-    try{
-      const r=await fetch(proxy(url),{signal:AbortSignal.timeout(8000)});
-      if(r.ok){
-        const j=await r.json();
-        const meta=j?.chart?.result?.[0]?.meta;
-        let price=meta?.regularMarketPrice;
-        if(price&&!isNaN(price)){
-          // TSM: se arriva in TWD (>300), converti in USD prima
-          if(ticker==='TSM'&&price>300) price=price/32;
-          return parseFloat(price);
+  for(const url of urls){
+    for(const proxy of proxies){
+      try{
+        const r=await fetch(proxy(url),{signal:AbortSignal.timeout(8000)});
+        if(r.ok){
+          const j=await r.json();
+          const meta=j?.chart?.result?.[0]?.meta;
+          let price=meta?.regularMarketPrice;
+          const currency=meta?.currency||'';
+          if(price&&!isNaN(price)){
+            console.log(ticker,'price:',price,'currency:',currency);
+            // Se valuta è TWD converti in USD
+            if(currency==='TWD') price=price/32;
+            // Se valuta è GBp (pence) converti in GBP
+            if(currency==='GBp') price=price/100;
+            return parseFloat(price);
+          }
         }
-      }
-    }catch{}
+      }catch{}
+    }
   }
   return null;
 }
