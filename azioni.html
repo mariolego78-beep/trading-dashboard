@@ -274,20 +274,28 @@ tr:hover td{background:var(--bg3)}
 const URL_TRADELOG='https://docs.google.com/spreadsheets/d/e/2PACX-1vTALoSLHROF_yPZ-7IaubNCcMKdHqczo05X7KA5_bAXUef-b9Dpjk7eFsrM3TIx7RTkzwRCA_tYRKGP/pub?gid=2134643969&single=true&output=csv';
 const URL_MENSILE='https://docs.google.com/spreadsheets/d/e/2PACX-1vTALoSLHROF_yPZ-7IaubNCcMKdHqczo05X7KA5_bAXUef-b9Dpjk7eFsrM3TIx7RTkzwRCA_tYRKGP/pub?gid=329490709&single=true&output=csv';
 
-const PROXIES=[
-  u=>`https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-  u=>u
-];
-
 async function fetchCSV(tabName){
   const url=tabName==='1_TRADE_LOG'?URL_TRADELOG:URL_MENSILE;
-  for(const proxy of PROXIES){
-    try{
-      const r=await fetch(proxy(url),{signal:AbortSignal.timeout(10000)});
-      if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('allowlist')&&!t.includes('<!DOCTYPE'))return t;}
-    }catch{}
-  }
+  // Prova 1: diretto (Google Sheets pub CSV supporta CORS)
+  try{
+    const r=await fetch(url,{signal:AbortSignal.timeout(10000)});
+    if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('<!DOCTYPE'))return t;}
+  }catch(e){console.log('Fetch diretto fallito:',e.message);}
+  // Prova 2: corsproxy.io
+  try{
+    const r=await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(10000)});
+    if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('<!DOCTYPE'))return t;}
+  }catch(e){console.log('corsproxy fallito:',e.message);}
+  // Prova 3: allorigins
+  try{
+    const r=await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,{signal:AbortSignal.timeout(10000)});
+    if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('allowlist')&&!t.includes('<!DOCTYPE'))return t;}
+  }catch(e){console.log('allorigins fallito:',e.message);}
+  // Prova 4: thingproxy
+  try{
+    const r=await fetch(`https://thingproxy.freeboard.io/fetch/${url}`,{signal:AbortSignal.timeout(10000)});
+    if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.includes('<!DOCTYPE'))return t;}
+  }catch(e){console.log('thingproxy fallito:',e.message);}
   return null;
 }
 
@@ -505,7 +513,7 @@ async function load(){
     const r1=(mRows[i][1]||'').trim().toLowerCase();
     if(r0==='anno'||r1==='mese'||r0.includes('anno')||r1.includes('mese')){mH=i;break;}
   }
-  console.log('Mensile header idx:',mH,'row:',mH>=0?mRows[mH]:mRows[0]);
+
 
   const mData=[];
   if(mH>=0){
