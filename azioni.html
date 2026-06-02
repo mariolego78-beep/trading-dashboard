@@ -69,8 +69,8 @@ tr:hover td{background:var(--bg3)}
 .badge.win{background:#00ff881a;border:1px solid #00ff8844;color:var(--green)}
 .badge.loss{background:#ff335522;border:1px solid #ff335544;color:var(--red)}
 .heatmap-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:8px}
-.hm-cell{padding:10px 6px;text-align:center;font-size:11px;font-family:var(--sans);font-weight:700;border:1px solid transparent;cursor:default}
-.hm-label{font-size:8px;color:inherit;display:block;margin-bottom:3px;letter-spacing:1px;opacity:.8}
+.hm-cell{padding:16px 8px;text-align:center;font-size:16px;font-family:var(--sans);font-weight:700;border:1px solid transparent;cursor:default}
+.hm-label{font-size:12px;color:inherit;display:block;margin-bottom:5px;letter-spacing:1px;opacity:.9;font-weight:600}
 .loading{display:flex;align-items:center;justify-content:center;height:160px;color:var(--text-dim);font-size:11px;letter-spacing:2px;gap:10px}
 .spinner{width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -464,7 +464,7 @@ async function load(){
     }},
     scales:{
       x:{display:false},
-      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',font:{family:'Share Tech Mono',size:10},callback:v=>'€'+v.toFixed(0)}}
+      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#aaaaaa',font:{family:'Share Tech Mono',size:11},callback:v=>'€'+v.toFixed(0)}}
     }
   });
 
@@ -500,7 +500,12 @@ async function load(){
   const mRaw=await fetchCSV('4_MENSILE');
   const mRows=parseCSV(mRaw);
   let mH=-1;
-  for(let i=0;i<mRows.length;i++){if(mRows[i][0]==='Anno'||mRows[i][1]==='Mese'){mH=i;break;}}
+  for(let i=0;i<mRows.length;i++){
+    const r0=(mRows[i][0]||'').trim().toLowerCase();
+    const r1=(mRows[i][1]||'').trim().toLowerCase();
+    if(r0==='anno'||r1==='mese'||r0.includes('anno')||r1.includes('mese')){mH=i;break;}
+  }
+  console.log('Mensile header idx:',mH,'row:',mH>=0?mRows[mH]:mRows[0]);
 
   const mData=[];
   if(mH>=0){
@@ -543,7 +548,7 @@ async function load(){
       }
     },
     scales:{
-      x:{grid:{display:false},ticks:{color:'#5a7a5a',font:{size:9}}},
+      x:{grid:{display:false},ticks:{color:'#aaaaaa',font:{size:11,family:'Rajdhani',weight:'600'}}},
       y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',font:{size:9},callback:v=>'€'+v.toFixed(0)}}
     }
   });
@@ -563,7 +568,7 @@ async function load(){
     plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' DD: '+ctx.raw.toFixed(2)+'%'}}},
     scales:{
       x:{display:false},
-      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#5a7a5a',font:{size:9},callback:v=>v.toFixed(1)+'%'}}
+      y:{grid:{color:'#1e3a1e44'},ticks:{color:'#aaaaaa',font:{size:11},callback:v=>v.toFixed(1)+'%'}}
     }
   });
 
