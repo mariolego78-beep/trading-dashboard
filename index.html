@@ -1417,15 +1417,15 @@ function buildHeatmap(mensile, mKeys, mode) {
   }
 
   const isDD = mode === 'dd';
-  let html = `<table style="width:100%; border-collapse:collapse; font-family:var(--mono);">`;
+  let html = `<table style="width:100%; border-collapse:collapse; font-family:var(--sans);">`;
   html += `<thead><tr><th style="width:46px;"></th>`;
   mesiNomi.forEach(m => {
-    html += `<th style="font-size:9px; color:var(--text3); letter-spacing:0.1em; text-align:center; padding:0 2px 8px; font-weight:400;">${m}</th>`;
+    html += `<th style="font-size:10px; color:var(--text3); letter-spacing:0.05em; text-align:center; padding:0 2px 8px; font-weight:500;">${m}</th>`;
   });
   html += `</tr></thead><tbody>`;
 
   anni.forEach(anno => {
-    html += `<tr><td style="font-size:11px; color:var(--text3); font-weight:500; padding:2px 6px 2px 0; white-space:nowrap;">${anno}</td>`;
+    html += `<tr><td style="font-size:12px; color:var(--text3); font-weight:600; padding:2px 6px 2px 0; white-space:nowrap;">${anno}</td>`;
     for (let m = 1; m <= 12; m++) {
       // Mesi futuri: cella grigia vuota
       const isFuture = anno > currentYear || (anno === currentYear && m > currentMonth);
@@ -1441,7 +1441,7 @@ function buildHeatmap(mensile, mKeys, mode) {
       }
       html += `<td style="padding:2px;">
         <div title="${display}" style="background:${c.bg}; border-radius:5px; height:34px; display:flex; align-items:center; justify-content:center; ${isFuture ? 'opacity:0.25;' : ''}">
-          <span style="font-size:9px; font-weight:500; color:${c.text}; white-space:nowrap;">${display}</span>
+          <span style="font-size:10px; font-weight:600; font-family:var(--sans); color:${c.text}; white-space:nowrap;">${display}</span>
         </div>
       </td>`;
     }
