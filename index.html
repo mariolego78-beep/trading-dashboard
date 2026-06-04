@@ -499,6 +499,11 @@
             <div class="metric-value" id="gain-1m">—</div>
             <div class="metric-sub" id="gain-1m-label">—</div>
           </div>
+          <div class="metric-card" style="grid-column: span 2;">
+            <div class="metric-label">Mese precedente</div>
+            <div class="metric-value" id="gain-prev-m">—</div>
+            <div class="metric-sub" id="gain-prev-m-label">—</div>
+          </div>
         </div>
         <!-- Heatmap a metà -->
         <div class="chart-card" style="margin-top:0; flex:1;">
@@ -1511,6 +1516,29 @@ function buildGains(giornaliero, gKeys) {
     el.className = 'metric-value ' + (gMese >= 0 ? 'pos' : 'neg');
     const nomiMesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
     document.getElementById('gain-1m-label').textContent = nomiMesi[meseCorrente - 1] + ' ' + annoCorrente;
+  }
+
+  // Mese precedente: dal primo all'ultimo giorno del mese scorso
+  const mesePrecNum = meseCorrente === 1 ? 12 : meseCorrente - 1;
+  const annoPrecNum = meseCorrente === 1 ? annoCorrente - 1 : annoCorrente;
+  const righeMessePrec = giornaliero.filter(r => {
+    const d = r[colData];
+    const p = d ? d.split('/') : [];
+    if (p.length === 3) {
+      const mm = parseInt(p[1]), yy = parseInt('20' + p[2]) || parseInt(p[2]);
+      return mm === mesePrecNum && yy === annoPrecNum;
+    }
+    return false;
+  });
+  if (righeMessePrec.length > 0) {
+    const valInizioPrev = parseNum(righeMessePrec[0][colVal]);
+    const valFinePrev = parseNum(righeMessePrec[righeMessePrec.length - 1][colVal]);
+    const gPrev = valFinePrev - valInizioPrev;
+    const elPrev = document.getElementById('gain-prev-m');
+    elPrev.textContent = fmtS(gPrev);
+    elPrev.className = 'metric-value ' + (gPrev >= 0 ? 'pos' : 'neg');
+    const nomiMesi = ['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+    document.getElementById('gain-prev-m-label').textContent = nomiMesi[mesePrecNum - 1] + ' ' + annoPrecNum;
   }
 }
 // ─────────────────────────────────────────────────────────
