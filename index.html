@@ -352,9 +352,9 @@
       </div>
     </div>
 
-    <!-- RIGA 3: Tabella mensile | Rendimenti mensili | Alpha | Profit Factor -->
-    <div style="display:grid; grid-template-columns: 2.2fr 1.1fr 1fr 0.7fr; gap:6px; margin-top:8px; align-items:stretch;">
-      <!-- Tabella riepilogo mensile spostata qui -->
+    <!-- RIGA 3: Tabella mensile | Rendimenti mensili | Profit Factor -->
+    <div style="display:grid; grid-template-columns: 2.2fr 2.1fr 0.7fr; gap:6px; margin-top:8px; align-items:stretch;">
+      <!-- Tabella riepilogo mensile -->
       <div class="table-card" style="margin-top:0;">
         <table>
           <thead>
@@ -372,22 +372,10 @@
           <tbody id="monthly-tbody"></tbody>
         </table>
       </div>
-      <!-- Rendimenti mensili spostato qui -->
+      <!-- Rendimenti mensili allargato -->
       <div class="chart-card-sm" style="display:flex; flex-direction:column;">
         <div class="chart-header"><div class="chart-title">Rendimenti mensili %</div></div>
         <div style="position:relative; flex:1; min-height:90px;"><canvas id="barChart"></canvas></div>
-      </div>
-      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
-        <div class="chart-header" style="margin-bottom:8px;">
-          <div class="chart-title">Alpha vs Benchmark</div>
-          <div id="alpha-status" style="font-family:var(--mono); font-size:9px; color:var(--text3);">caricamento...</div>
-        </div>
-        <div id="alpha-content" style="flex:1; display:flex; flex-direction:column; gap:5px; justify-content:center;">
-          <div style="font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center;">Caricamento...</div>
-        </div>
-        <div style="margin-top:6px;">
-          <button onclick="loadAlpha()" style="font-family:var(--mono); font-size:9px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:3px 8px; cursor:pointer; letter-spacing:0.1em;">↻ AGGIORNA</button>
-        </div>
       </div>
       <div class="chart-card-sm" style="display:flex; flex-direction:column; justify-content:center;">
         <div class="chart-header" style="margin-bottom:8px;"><div class="chart-title">Profit Factor</div></div>
@@ -413,6 +401,22 @@
             </div>
             <div id="pf-quality" style="font-family:var(--mono); font-size:9px; color:var(--text3);">—</div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGA 3b: Alpha vs Benchmark (spostato sotto) -->
+    <div style="margin-top:6px;">
+      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
+        <div class="chart-header" style="margin-bottom:8px;">
+          <div class="chart-title">Alpha vs Benchmark</div>
+          <div id="alpha-status" style="font-family:var(--mono); font-size:9px; color:var(--text3);">caricamento...</div>
+        </div>
+        <div id="alpha-content" style="display:flex; flex-direction:column; gap:5px;">
+          <div style="font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center;">Caricamento...</div>
+        </div>
+        <div style="margin-top:6px;">
+          <button onclick="loadAlpha()" style="font-family:var(--mono); font-size:9px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:3px 8px; cursor:pointer; letter-spacing:0.1em;">↻ AGGIORNA</button>
         </div>
       </div>
     </div>
@@ -982,6 +986,12 @@ function buildHeatmap(mensile, mKeys, mode) {
 function buildBarChart(mensile, mKeys) {
   const labels = mensile.map(r => r[mKeys[0]]);
   const values = mensile.map(r => parsePct(r[mKeys[4]]) * 100);
+  // calcola delta euro: Fine - Inizio (colonne 2 e 1)
+  const valuesEur = mensile.map(r => {
+    const fine = parseNum(r[mKeys[2]]);
+    const inizio = parseNum(r[mKeys[1]]);
+    return fine - inizio;
+  });
   const colors = values.map(v => v >= 0 ? 'rgba(0,210,255,0.7)' : 'rgba(255,77,106,0.7)');
   const borderColors = values.map(v => v >= 0 ? '#00d2ff' : '#ff4d6a');
   const barLabelPlugin = {
@@ -989,15 +999,29 @@ function buildBarChart(mensile, mKeys) {
     afterDatasetsDraw(chart) {
       const { ctx, data } = chart;
       ctx.save();
-      ctx.font = '500 9px "IBM Plex Mono"';
       ctx.textAlign = 'center';
       data.datasets[0].data.forEach((val, i) => {
         if (val === null || val === undefined) return;
         const meta = chart.getDatasetMeta(0);
         const bar = meta.data[i];
         const isPos = val >= 0;
-        ctx.fillStyle = 'rgba(255,255,255,0.82)';
-        ctx.fillText((isPos ? '+' : '') + val.toFixed(1) + '%', bar.x, isPos ? bar.y - 4 : bar.y + 11);
+        const eur = valuesEur[i];
+        const pctLabel = (isPos ? '+' : '') + val.toFixed(1) + '%';
+        const eurLabel = (eur >= 0 ? '+' : '') + '€' + Math.round(eur).toLocaleString('it-IT');
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        if (isPos) {
+          ctx.font = '600 9px "IBM Plex Sans"';
+          ctx.fillText(pctLabel, bar.x, bar.y - 14);
+          ctx.font = '400 8px "IBM Plex Sans"';
+          ctx.fillStyle = 'rgba(255,255,255,0.55)';
+          ctx.fillText(eurLabel, bar.x, bar.y - 4);
+        } else {
+          ctx.font = '600 9px "IBM Plex Sans"';
+          ctx.fillText(pctLabel, bar.x, bar.y + 11);
+          ctx.font = '400 8px "IBM Plex Sans"';
+          ctx.fillStyle = 'rgba(255,255,255,0.55)';
+          ctx.fillText(eurLabel, bar.x, bar.y + 21);
+        }
       });
       ctx.restore();
     }
@@ -1007,7 +1031,7 @@ function buildBarChart(mensile, mKeys) {
     type: 'bar',
     data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: borderColors, borderWidth: 1, borderRadius: 3 }] },
     plugins: [barLabelPlugin],
-    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 16 } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d1410', borderColor: 'rgba(0,210,255,0.16)', borderWidth: 1, titleColor: '#3d5c45', bodyColor: '#eaf5ee', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 11 }, callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' } } }, scales: { x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } }, y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } } } }
+    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28, bottom: 12 } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d1410', borderColor: 'rgba(0,210,255,0.16)', borderWidth: 1, titleColor: '#3d5c45', bodyColor: '#eaf5ee', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 11 }, callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' } } }, scales: { x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } }, y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } } } }
   });
 }
 
