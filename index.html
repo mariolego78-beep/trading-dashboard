@@ -405,27 +405,10 @@
       </div>
     </div>
 
-    <!-- RIGA 3b: Alpha vs Benchmark (spostato sotto) -->
-    <div style="margin-top:6px;">
-      <div class="chart-card-sm" style="display:flex; flex-direction:column;">
-        <div class="chart-header" style="margin-bottom:8px;">
-          <div class="chart-title">Alpha vs Benchmark</div>
-          <div id="alpha-status" style="font-family:var(--mono); font-size:9px; color:var(--text3);">caricamento...</div>
-        </div>
-        <div id="alpha-content" style="display:flex; flex-direction:column; gap:5px;">
-          <div style="font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center;">Caricamento...</div>
-        </div>
-        <div style="margin-top:6px;">
-          <button onclick="loadAlpha()" style="font-family:var(--mono); font-size:9px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:3px 8px; cursor:pointer; letter-spacing:0.1em;">↻ AGGIORNA</button>
-        </div>
-      </div>
-    </div>
-
-
     <!-- RIEPILOGO MENSILE + PROIEZIONE COMPOUND -->
     <div class="section-label">Riepilogo mensile</div>
-    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:8px;">
-      <!-- Proiezione compound spostata qui -->
+    <div style="display:grid; grid-template-columns: 1fr 2fr; gap:8px; margin-top:8px;">
+      <!-- Proiezione compound -->
       <div style="display:flex; flex-direction:column; gap:6px;">
         <div class="proj-slider">
           <label>TASSO MENSILE</label>
@@ -479,39 +462,26 @@
           </table>
         </div>
       </div>
-      <!-- PANNELLO DESTRA: heatmap rendimenti per anno/mese -->
-      <div id="mensile-right" style="display:flex; flex-direction:column; gap:8px;">
-        <!-- 4 card guadagni giornalieri -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-          <div class="metric-card">
-            <div class="metric-label">Guadagno oggi</div>
-            <div class="metric-value" id="gain-1d">—</div>
-            <div class="metric-sub" id="gain-1d-date">—</div>
+      <!-- PANNELLO DESTRA: Alpha compatto | Heatmap | 5 box guadagni — tutti sulla stessa riga -->
+      <div style="display:grid; grid-template-columns: 0.55fr 1.6fr 0.45fr; gap:6px; grid-column: span 2;">
+
+        <!-- Alpha vs Benchmark compatto -->
+        <div class="chart-card" style="margin-top:0; display:flex; flex-direction:column; padding:10px 12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="chart-title">Alpha vs Benchmark</div>
+            <div id="alpha-status" style="font-family:var(--mono); font-size:9px; color:var(--text3);">—</div>
           </div>
-          <div class="metric-card">
-            <div class="metric-label">Ultima settimana</div>
-            <div class="metric-value" id="gain-1w">—</div>
-            <div class="metric-sub">5 giorni lavorativi</div>
+          <div id="alpha-content" style="flex:1; display:flex; flex-direction:column; gap:4px; justify-content:center;">
+            <div style="font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center;">Caricamento...</div>
           </div>
-          <div class="metric-card">
-            <div class="metric-label">Ultime 2 settimane</div>
-            <div class="metric-value" id="gain-2w">—</div>
-            <div class="metric-sub">10 giorni lavorativi</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-label">Mese corrente</div>
-            <div class="metric-value" id="gain-1m">—</div>
-            <div class="metric-sub" id="gain-1m-label">—</div>
-          </div>
-          <div class="metric-card" style="grid-column: span 2;">
-            <div class="metric-label">Mese precedente</div>
-            <div class="metric-value" id="gain-prev-m">—</div>
-            <div class="metric-sub" id="gain-prev-m-label">—</div>
+          <div style="margin-top:6px;">
+            <button onclick="loadAlpha()" style="font-family:var(--mono); font-size:9px; color:var(--text3); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:3px 8px; cursor:pointer; letter-spacing:0.1em;">↻ AGGIORNA</button>
           </div>
         </div>
-        <!-- Heatmap a metà -->
-        <div class="chart-card" style="margin-top:0; flex:1;">
-          <div class="chart-header" style="margin-bottom:14px;">
+
+        <!-- Heatmap -->
+        <div class="chart-card" style="margin-top:0;">
+          <div class="chart-header" style="margin-bottom:10px;">
             <div class="chart-title">Heatmap rendimenti mensili</div>
             <div style="display:flex; gap:6px; align-items:center;">
               <button class="chart-tab active" onclick="setHeatmapMode('rend', this)" id="hm-btn-rend">Rendimento</button>
@@ -519,30 +489,45 @@
             </div>
           </div>
           <div id="heatmap-container" style="overflow-x:auto;"></div>
-          <div style="margin-top:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div style="margin-top:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span style="font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:0.1em;">SCALA:</span>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <div style="width:14px; height:14px; border-radius:3px; background:#6b0f0f;"></div>
-              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">forte neg</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <div style="width:14px; height:14px; border-radius:3px; background:#e08080;"></div>
-              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">lieve neg</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <div style="width:14px; height:14px; border-radius:3px; background:rgba(100,120,200,0.15); border:1px solid var(--border);"></div>
-              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">—</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <div style="width:14px; height:14px; border-radius:3px; background:#6fd06f;"></div>
-              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">lieve pos</span>
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <div style="width:14px; height:14px; border-radius:3px; background:#1a5c1a;"></div>
-              <span style="font-family:var(--mono); font-size:9px; color:var(--text3);">forte pos</span>
-            </div>
+            <div style="display:flex; gap:4px; align-items:center;"><div style="width:12px; height:12px; border-radius:3px; background:#6b0f0f;"></div><span style="font-family:var(--mono); font-size:9px; color:var(--text3);">forte neg</span></div>
+            <div style="display:flex; gap:4px; align-items:center;"><div style="width:12px; height:12px; border-radius:3px; background:#e08080;"></div><span style="font-family:var(--mono); font-size:9px; color:var(--text3);">lieve neg</span></div>
+            <div style="display:flex; gap:4px; align-items:center;"><div style="width:12px; height:12px; border-radius:3px; background:rgba(100,120,200,0.15); border:1px solid var(--border);"></div><span style="font-family:var(--mono); font-size:9px; color:var(--text3);">—</span></div>
+            <div style="display:flex; gap:4px; align-items:center;"><div style="width:12px; height:12px; border-radius:3px; background:#6fd06f;"></div><span style="font-family:var(--mono); font-size:9px; color:var(--text3);">lieve pos</span></div>
+            <div style="display:flex; gap:4px; align-items:center;"><div style="width:12px; height:12px; border-radius:3px; background:#1a5c1a;"></div><span style="font-family:var(--mono); font-size:9px; color:var(--text3);">forte pos</span></div>
           </div>
         </div>
+
+        <!-- 5 box guadagni in colonna -->
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Guadagno oggi</div>
+            <div class="metric-value" id="gain-1d">—</div>
+            <div class="metric-sub" id="gain-1d-date">—</div>
+          </div>
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Ultima settimana</div>
+            <div class="metric-value" id="gain-1w">—</div>
+            <div class="metric-sub">5 gg lav.</div>
+          </div>
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Ultime 2 sett.</div>
+            <div class="metric-value" id="gain-2w">—</div>
+            <div class="metric-sub">10 gg lav.</div>
+          </div>
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Mese corrente</div>
+            <div class="metric-value" id="gain-1m">—</div>
+            <div class="metric-sub" id="gain-1m-label">—</div>
+          </div>
+          <div class="metric-card" style="flex:1;">
+            <div class="metric-label">Mese precedente</div>
+            <div class="metric-value" id="gain-prev-m">—</div>
+            <div class="metric-sub" id="gain-prev-m-label">—</div>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -986,12 +971,6 @@ function buildHeatmap(mensile, mKeys, mode) {
 function buildBarChart(mensile, mKeys) {
   const labels = mensile.map(r => r[mKeys[0]]);
   const values = mensile.map(r => parsePct(r[mKeys[4]]) * 100);
-  // calcola delta euro: Fine - Inizio (colonne 2 e 1)
-  const valuesEur = mensile.map(r => {
-    const fine = parseNum(r[mKeys[2]]);
-    const inizio = parseNum(r[mKeys[1]]);
-    return fine - inizio;
-  });
   const colors = values.map(v => v >= 0 ? 'rgba(0,210,255,0.7)' : 'rgba(255,77,106,0.7)');
   const borderColors = values.map(v => v >= 0 ? '#00d2ff' : '#ff4d6a');
   const barLabelPlugin = {
@@ -999,29 +978,15 @@ function buildBarChart(mensile, mKeys) {
     afterDatasetsDraw(chart) {
       const { ctx, data } = chart;
       ctx.save();
+      ctx.font = '500 9px "IBM Plex Mono"';
       ctx.textAlign = 'center';
       data.datasets[0].data.forEach((val, i) => {
         if (val === null || val === undefined) return;
         const meta = chart.getDatasetMeta(0);
         const bar = meta.data[i];
         const isPos = val >= 0;
-        const eur = valuesEur[i];
-        const pctLabel = (isPos ? '+' : '') + val.toFixed(1) + '%';
-        const eurLabel = (eur >= 0 ? '+' : '') + '€' + Math.round(eur).toLocaleString('it-IT');
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        if (isPos) {
-          ctx.font = '600 9px "IBM Plex Sans"';
-          ctx.fillText(pctLabel, bar.x, bar.y - 14);
-          ctx.font = '400 8px "IBM Plex Sans"';
-          ctx.fillStyle = 'rgba(255,255,255,0.55)';
-          ctx.fillText(eurLabel, bar.x, bar.y - 4);
-        } else {
-          ctx.font = '600 9px "IBM Plex Sans"';
-          ctx.fillText(pctLabel, bar.x, bar.y + 11);
-          ctx.font = '400 8px "IBM Plex Sans"';
-          ctx.fillStyle = 'rgba(255,255,255,0.55)';
-          ctx.fillText(eurLabel, bar.x, bar.y + 21);
-        }
+        ctx.fillStyle = 'rgba(255,255,255,0.82)';
+        ctx.fillText((isPos ? '+' : '') + val.toFixed(1) + '%', bar.x, isPos ? bar.y - 4 : bar.y + 11);
       });
       ctx.restore();
     }
@@ -1031,7 +996,7 @@ function buildBarChart(mensile, mKeys) {
     type: 'bar',
     data: { labels, datasets: [{ data: values, backgroundColor: colors, borderColor: borderColors, borderWidth: 1, borderRadius: 3 }] },
     plugins: [barLabelPlugin],
-    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28, bottom: 12 } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d1410', borderColor: 'rgba(0,210,255,0.16)', borderWidth: 1, titleColor: '#3d5c45', bodyColor: '#eaf5ee', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 11 }, callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' } } }, scales: { x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } }, y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } } } }
+    options: { responsive: true, maintainAspectRatio: false, layout: { padding: { top: 16 } }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d1410', borderColor: 'rgba(0,210,255,0.16)', borderWidth: 1, titleColor: '#3d5c45', bodyColor: '#eaf5ee', titleFont: { family: 'IBM Plex Mono', size: 9 }, bodyFont: { family: 'IBM Plex Mono', size: 11 }, callbacks: { label: c => (c.parsed.y >= 0 ? '+' : '') + c.parsed.y.toFixed(2) + '%' } } }, scales: { x: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, maxRotation: 30 }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } }, y: { ticks: { color: '#9aa3cc', font: { family: 'IBM Plex Mono', size: 10 }, callback: v => v.toFixed(1) + '%' }, grid: { color: 'rgba(0,210,255,0.05)' }, border: { color: 'rgba(0,210,255,0.08)' } } } }
   });
 }
 
