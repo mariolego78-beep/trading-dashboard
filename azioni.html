@@ -273,8 +273,8 @@ tr:hover td{background:var(--bg3)}
 <div class="footer">MARIO TRADING DASHBOARD &nbsp;|&nbsp; GOOGLE SHEETS LIVE &nbsp;|&nbsp; AGG: <span id="lastUpdate">—</span></div>
 
 <script>
-const URL_TRADELOG='https://docs.google.com/spreadsheets/d/e/2PACX-1vTALoSLHROF_yPZ-7IaubNCcMKdHqczo05X7KA5_bAXUef-b9Dpjk7eFsrM3TIx7RTkzwRCA_tYRKGP/pub?gid=2134643969&single=true&output=csv';
-const URL_MENSILE='https://docs.google.com/spreadsheets/d/e/2PACX-1vTALoSLHROF_yPZ-7IaubNCcMKdHqczo05X7KA5_bAXUef-b9Dpjk7eFsrM3TIx7RTkzwRCA_tYRKGP/pub?gid=329490709&single=true&output=csv';
+const URL_TRADELOG='https://docs.google.com/spreadsheets/d/e/2PACX-1vQz-snYzb4JHu0C1UW1c43lS2yGhXibdfp0k8EE04DROS204Gj5iqVFgm1I6MVGog/pub?gid=286180081&single=true&output=csv';
+const URL_MENSILE='https://docs.google.com/spreadsheets/d/e/2PACX-1vQz-snYzb4JHu0C1UW1c43lS2yGhXibdfp0k8EE04DROS204Gj5iqVFgm1I6MVGog/pub?gid=1864162308&single=true&output=csv';
 
 async function fetchCSV(tabName){
   const url=tabName==='1_TRADE_LOG'?URL_TRADELOG:URL_MENSILE;
@@ -358,7 +358,7 @@ function makeChart(id,type,data,opts){
 const OPEN_POSITIONS=[
   {ticker:'TSM',  qty:4,  prezzoIn:227.85},
   {ticker:'NVDA', qty:9,  prezzoIn:121.14},
-  {ticker:'SMCI', qty:18, prezzoIn:26.45},
+  {ticker:'SMCI', qty:8,  prezzoIn:26.45},
   {ticker:'RACE', qty:3,  prezzoIn:308.58},
   {ticker:'SOFI', qty:18, prezzoIn:14.64},
 ];
