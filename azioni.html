@@ -865,8 +865,7 @@ async function loadTickerChart() {
     if (!csv) throw new Error('Dati non disponibili');
 
     const lines = csv.trim().split('\n');
-    // Row 0 is title, row 1 is blank or subtitle, row 2 is headers - find header row
-    // Find header row containing "Ticker"
+    // Row 0 = titolo, Row 1 = intestazioni (C=Ticker, N=P&L Netto, T=Status)
     let headerIdx = 0;
     for (let i = 0; i < Math.min(5, lines.length); i++) {
       if (lines[i].toLowerCase().includes('ticker')) { headerIdx = i; break; }
@@ -875,13 +874,15 @@ async function loadTickerChart() {
     const sep = lines[headerIdx].includes(';') ? ';' : ',';
     const headers = lines[headerIdx].split(sep).map(h => h.replace(/"/g, '').trim().toLowerCase());
 
-    const tickerCol = headers.findIndex(h => h.includes('ticker'));
-    const statusCol = headers.findIndex(h => h.includes('status'));
-    const pnlCol = headers.findIndex(h => h.includes('p&l') && (h.includes('netto') || h.includes('net')));
-    // fallback: col 16 (P&L Netto) based on known structure
-    const pnlIdx = pnlCol !== -1 ? pnlCol : 16;
-    const statusIdx = statusCol !== -1 ? statusCol : 20;
-    const tickerIdx = tickerCol !== -1 ? tickerCol : 2;
+    // Ricerca dinamica con fallback su indici noti (C=2, N=13, T=19)
+    const tickerIdx = (() => { const i = headers.findIndex(h => h === 'ticker'); return i !== -1 ? i : 2; })();
+    const pnlIdx    = (() => { const i = headers.findIndex(h => h.includes('netto')); return i !== -1 ? i : 13; })();
+    const statusIdx = (() => { const i = headers.findIndex(h => h === 'status'); return i !== -1 ? i : 19; })();
+
+    // DEBUG — apri la console (F12) per vedere i valori
+    console.log('Headers trovati:', headers);
+    console.log('tickerIdx:', tickerIdx, 'pnlIdx:', pnlIdx, 'statusIdx:', statusIdx);
+    console.log('Prima riga dati:', lines[headerIdx + 1]?.split(sep));
 
     // Aggregate P&L by ticker for CLOSED trades
     const tickerMap = {};
