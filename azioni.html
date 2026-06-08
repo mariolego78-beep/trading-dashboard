@@ -599,7 +599,10 @@ async function loadData() {
       const attuale = parseNum(r[col.attuale]);
       const valore = parseNum(r[col.valore]) || attuale * qty;
       const pnl = parseNum(r[col.pnl_eur]) || (attuale - carico) * qty;
-      const pnlPct = parseNum(r[col.pnl_pct]) || (carico > 0 ? (attuale - carico) / carico : 0);
+      // pnl_pct from sheet is already a percentage (e.g. 47.01 means 47.01%)
+      // divide by 100 to get decimal for display
+      const rawPct = parseNum(r[col.pnl_pct]);
+      const pnlPct = rawPct !== 0 ? rawPct / 100 : (carico > 0 ? (attuale - carico) / carico : 0);
 
       const investito = carico * qty;
       totValore += valore;
