@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mario — Dashboard Azioni</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #060e07;
@@ -22,7 +22,7 @@
     --text: #c8f5c8;
     --text-dim: #5a8a5a;
     --border: #1a3a1a;
-    --mono: 'JetBrains Mono', monospace;
+    --mono: 'IBM Plex Mono', monospace;
     --display: 'Bebas Neue', sans-serif;
   }
 
@@ -32,7 +32,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: 15px;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -75,14 +75,14 @@
 
   .logo {
     font-family: var(--display);
-    font-size: 28px;
+    font-size: 30px;
     color: var(--green);
     letter-spacing: 3px;
     text-shadow: 0 0 20px var(--green);
   }
 
   .header-tag {
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-dim);
     border: 1px solid var(--border);
     padding: 2px 8px;
@@ -93,7 +93,7 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    font-size: 11px;
+    font-size: 13px;
     color: var(--text-dim);
   }
 
@@ -111,7 +111,7 @@
   .nav-links a {
     color: var(--text-dim);
     text-decoration: none;
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1px;
     padding: 4px 10px;
     border: 1px solid transparent;
@@ -160,7 +160,7 @@
   }
 
   .kpi-label {
-    font-size: 9px;
+    font-size: 13px;
     color: var(--text-dim);
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -168,7 +168,7 @@
   }
 
   .kpi-value {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
     color: var(--green);
     letter-spacing: 1px;
@@ -178,7 +178,7 @@
   .kpi-value.gold { color: var(--gold); }
 
   .kpi-sub {
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-dim);
     margin-top: 4px;
   }
@@ -200,14 +200,14 @@
   }
 
   .section-title {
-    font-size: 10px;
+    font-size: 14px;
     letter-spacing: 3px;
     color: var(--green);
     text-transform: uppercase;
   }
 
   .section-meta {
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-dim);
   }
 
@@ -223,7 +223,7 @@
   th {
     padding: 10px 16px;
     text-align: right;
-    font-size: 9px;
+    font-size: 13px;
     letter-spacing: 2px;
     color: var(--text-dim);
     text-transform: uppercase;
@@ -247,7 +247,7 @@
   td {
     padding: 14px 16px;
     text-align: right;
-    font-size: 12px;
+    font-size: 14px;
   }
 
   td:first-child { text-align: left; }
@@ -262,7 +262,7 @@
     background: var(--green-dark);
     color: var(--green);
     font-weight: 700;
-    font-size: 11px;
+    font-size: 13px;
     padding: 3px 8px;
     letter-spacing: 1px;
     min-width: 52px;
@@ -271,7 +271,7 @@
 
   .ticker-name {
     color: var(--text-dim);
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .positive { color: var(--green); }
@@ -281,7 +281,7 @@
   .pct-badge {
     display: inline-block;
     padding: 2px 8px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
   }
 
@@ -320,7 +320,7 @@
     text-align: center;
     padding: 60px;
     color: var(--text-dim);
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 3px;
   }
 
@@ -340,7 +340,7 @@
     border: 1px solid var(--red-dark);
     padding: 16px 20px;
     color: var(--red);
-    font-size: 11px;
+    font-size: 13px;
     letter-spacing: 1px;
     margin: 20px 0;
   }
@@ -352,7 +352,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 10px;
+    font-size: 14px;
     color: var(--text-dim);
     letter-spacing: 1px;
     margin-top: 24px;
@@ -379,7 +379,7 @@
     font-weight: 700;
     color: var(--green);
     background: var(--bg3);
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .refresh-btn {
@@ -387,7 +387,7 @@
     border: 1px solid var(--green-dark);
     color: var(--green);
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 14px;
     letter-spacing: 2px;
     padding: 5px 14px;
     cursor: pointer;
