@@ -465,18 +465,6 @@
   </div>
 
   <!-- Grafico P&L mensile -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-title">▸ P&L Mensile — Aprile 2025 / Oggi</div>
-      <div class="section-meta" id="chart-meta">Caricamento...</div>
-    </div>
-    <div style="padding: 24px; position: relative; height: 320px;">
-      <canvas id="monthly-chart"></canvas>
-    </div>
-  </div>
-
-
-  <!-- Grafico P&L mensile -->
   <div class="section" style="margin-top:20px;">
     <div class="section-header">
       <div class="section-title">&#9658; P&amp;L Mensile &#8212; Aprile 2025 / Oggi</div>
@@ -498,8 +486,9 @@
 const SHEET_ID = '1f658KZDER07TvzTfjh1oRlhu_kHGJ1fs';
 const GID = '30291385';
 const PROXIES = [
-  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
   url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
 ];
 
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
