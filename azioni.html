@@ -482,10 +482,28 @@ const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?forma
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
-  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+  // Detect separator: semicolon (Italian) or comma
+  const firstLine = lines[0];
+  const sep = (firstLine.split(';').length > firstLine.split(',').length) ? ';' : ',';
+
+  function splitLine(line) {
+    // Handle quoted fields
+    const result = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === sep && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  const headers = splitLine(firstLine).map(h => h.replace(/"/g, '').trim().toLowerCase());
   const rows = [];
   for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+    const cols = splitLine(lines[i]).map(c => c.replace(/"/g, '').trim());
     if (!cols[0]) continue;
     const row = {};
     headers.forEach((h, j) => row[h] = cols[j] || '');
@@ -496,7 +514,13 @@ function parseCSV(text) {
 
 function parseNum(val) {
   if (!val) return 0;
-  return parseFloat(val.replace(/[€%\s]/g, '').replace(',', '.')) || 0;
+  let s = val.replace(/[€%\s\u00a0]/g, '');
+  if (s.includes(',') && s.includes('.')) {
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else if (s.includes(',')) {
+    s = s.replace(',', '.');
+  }
+  return parseFloat(s) || 0;
 }
 
 function fmt(val, decimals = 2) {
