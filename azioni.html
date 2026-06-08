@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mario — Dashboard Azioni</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060e07;
+    --bg2: #0a160b;
+    --bg3: #0f1e10;
+    --green: #00ff41;
+    --green-dim: #00cc33;
+    --green-dark: #004d14;
+    --green-glow: rgba(0,255,65,0.15);
+    --red: #ff3b3b;
+    --red-dim: #cc2222;
+    --red-dark: #4d0000;
+    --gold: #ffd700;
+    --text: #c8f5c8;
+    --text-dim: #5a8a5a;
+    --border: #1a3a1a;
+    --mono: 'JetBrains Mono', monospace;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanlines effect */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg2);
+    border-bottom: 2px solid var(--green-dark);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-size: 28px;
+    color: var(--green);
+    letter-spacing: 3px;
+    text-shadow: 0 0 20px var(--green);
+  }
+
+  .header-tag {
+    font-size: 10px;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    letter-spacing: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .clock {
+    color: var(--green);
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 12px;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .nav-links a:hover, .nav-links a.active {
+    color: var(--green);
+    border-color: var(--green-dark);
+  }
+
+  /* Main layout */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* KPI bar */
+  .kpi-bar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--green-dark);
+  }
+
+  .kpi-card:hover {
+    border-color: var(--green-dark);
+  }
+
+  .kpi-label {
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .kpi-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  .kpi-value.negative { color: var(--red); }
+  .kpi-value.gold { color: var(--gold); }
+
+  .kpi-sub {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+  }
+
+  /* Table section */
+  .section {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .section-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .section-title {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--green);
+    text-transform: uppercase;
+  }
+
+  .section-meta {
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    padding: 10px 16px;
+    text-align: right;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-weight: 600;
+    background: var(--bg3);
+  }
+
+  th:first-child { text-align: left; }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(26,58,26,0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover {
+    background: var(--green-glow);
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+
+  td {
+    padding: 14px 16px;
+    text-align: right;
+    font-size: 12px;
+  }
+
+  td:first-child { text-align: left; }
+
+  .ticker-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ticker-badge {
+    background: var(--green-dark);
+    color: var(--green);
+    font-weight: 700;
+    font-size: 11px;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+    min-width: 52px;
+    text-align: center;
+  }
+
+  .ticker-name {
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .positive { color: var(--green); }
+  .negative { color: var(--red); }
+  .neutral { color: var(--text-dim); }
+
+  .pct-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .pct-badge.pos {
+    background: rgba(0,255,65,0.1);
+    color: var(--green);
+    border: 1px solid var(--green-dark);
+  }
+
+  .pct-badge.neg {
+    background: rgba(255,59,59,0.1);
+    color: var(--red);
+    border: 1px solid var(--red-dark);
+  }
+
+  /* Bar chart per peso */
+  .weight-bar-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+
+  .weight-bar {
+    height: 4px;
+    background: var(--green-dark);
+    min-width: 4px;
+    max-width: 80px;
+    transition: width 0.5s ease;
+  }
+
+  .weight-bar.fill { background: var(--green); }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 60px;
+    color: var(--text-dim);
+    font-size: 11px;
+    letter-spacing: 3px;
+  }
+
+  .loading span {
+    color: var(--green);
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* Error */
+  .error-box {
+    background: rgba(255,59,59,0.05);
+    border: 1px solid var(--red-dark);
+    padding: 16px 20px;
+    color: var(--red);
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin: 20px 0;
+  }
+
+  /* Footer */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    margin-top: 24px;
+  }
+
+  .status-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    margin-right: 6px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* Totale row */
+  .total-row td {
+    border-top: 2px solid var(--green-dark);
+    font-weight: 700;
+    color: var(--green);
+    background: var(--bg3);
+    font-size: 13px;
+  }
+
+  .refresh-btn {
+    background: none;
+    border: 1px solid var(--green-dark);
+    color: var(--green);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .refresh-btn:hover {
+    background: var(--green-glow);
+    border-color: var(--green);
+  }
+
+  @media (max-width: 900px) {
+    .kpi-bar { grid-template-columns: repeat(2, 1fr); }
+    .header { flex-direction: column; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo">MARIO</div>
+    <div class="header-tag">PORTAFOGLIO AZIONI</div>
+  </div>
+  <div class="header-right">
+    <div class="nav-links">
+      <a href="index.html">DASHBOARD</a>
+      <a href="azioni.html" class="active">AZIONI</a>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+    <button class="refresh-btn" onclick="loadData()">↻ AGGIORNA</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPI Bar -->
+  <div class="kpi-bar" id="kpi-bar">
+    <div class="kpi-card">
+      <div class="kpi-label">Valore Totale</div>
+      <div class="kpi-value" id="kpi-valore">—</div>
+      <div class="kpi-sub">portafoglio azionario</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">P&L Totale €</div>
+      <div class="kpi-value" id="kpi-pnl">—</div>
+      <div class="kpi-sub">guadagno/perdita</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">P&L Totale %</div>
+      <div class="kpi-value" id="kpi-pnl-pct">—</div>
+      <div class="kpi-sub">rendimento medio ponderato</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Capitale Investito</div>
+      <div class="kpi-value gold" id="kpi-investito">—</div>
+      <div class="kpi-sub">prezzo carico × qty</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Posizioni</div>
+      <div class="kpi-value" id="kpi-posizioni">—</div>
+      <div class="kpi-sub">titoli in portafoglio</div>
+    </div>
+  </div>
+
+  <!-- Tabella posizioni -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">▸ Posizioni Aperte</div>
+      <div class="section-meta" id="last-update">Caricamento...</div>
+    </div>
+    <div id="table-container">
+      <div class="loading">CARICAMENTO DATI <span>█</span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div><span class="status-dot"></span> LIVE — Dati da Google Sheets + GOOGLEFINANCE</div>
+  <div>mariolego78-beep.github.io/trading-dashboard/azioni.html</div>
+</div>
+
+<script>
+const SHEET_ID = '1f658KZDER07TvzTfjh1oRlhu_kHGJ1fs';
+const GID = '30291385';
+const PROXIES = [
+  url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+];
+
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, '').toLowerCase());
+  const rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.trim().replace(/"/g, ''));
+    if (!cols[0]) continue;
+    const row = {};
+    headers.forEach((h, j) => row[h] = cols[j] || '');
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseNum(val) {
+  if (!val) return 0;
+  return parseFloat(val.replace(/[€%\s]/g, '').replace(',', '.')) || 0;
+}
+
+function fmt(val, decimals = 2) {
+  return val.toLocaleString('it-IT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function fmtEur(val) {
+  const s = fmt(Math.abs(val));
+  return (val < 0 ? '-' : '') + '€' + s;
+}
+
+function fmtPct(val) {
+  return (val >= 0 ? '+' : '') + fmt(val * 100, 2) + '%';
+}
+
+async function fetchCSV() {
+  for (const proxy of PROXIES) {
+    try {
+      const res = await fetch(proxy(CSV_URL), { cache: 'no-store' });
+      if (res.ok) {
+        const text = await res.text();
+        if (text.length > 10) return text;
+      }
+    } catch(e) {}
+  }
+  throw new Error('Impossibile caricare i dati');
+}
+
+async function loadData() {
+  document.getElementById('table-container').innerHTML = '<div class="loading">CARICAMENTO DATI <span>█</span></div>';
+  document.getElementById('last-update').textContent = 'Caricamento...';
+
+  try {
+    const csv = await fetchCSV();
+    const rows = parseCSV(csv);
+
+    if (!rows.length) throw new Error('Nessun dato trovato');
+
+    // Trova colonne — supporta nomi flessibili
+    const sample = rows[0];
+    const keys = Object.keys(sample);
+
+    // Mappa colonne
+    const col = {
+      ticker: keys.find(k => k.includes('ticker')) || keys[0],
+      nome: keys.find(k => k.includes('nome')) || keys[1],
+      qty: keys.find(k => k.includes('qty') || k.includes('qta') || k === 'c') || keys[2],
+      carico: keys.find(k => k.includes('carico') || k.includes('prezzo c')) || keys[3],
+      attuale: keys.find(k => k.includes('attual') || k.includes('prezzo a')) || keys[4],
+      valore: keys.find(k => k.includes('valore')) || keys[5],
+      pnl_eur: keys.find(k => k.includes('p&l') && !k.includes('%')) || keys[6],
+      pnl_pct: keys.find(k => k.includes('p&l') && k.includes('%')) || keys[7],
+    };
+
+    // Calcola totali
+    let totValore = 0, totInvestito = 0, totPnl = 0;
+
+    const tableRows = rows.map(r => {
+      const ticker = r[col.ticker] || '';
+      const nome = r[col.nome] || '';
+      const qty = parseNum(r[col.qty]);
+      const carico = parseNum(r[col.carico]);
+      const attuale = parseNum(r[col.attuale]);
+      const valore = parseNum(r[col.valore]) || attuale * qty;
+      const pnl = parseNum(r[col.pnl_eur]) || (attuale - carico) * qty;
+      const pnlPct = parseNum(r[col.pnl_pct]) || (carico > 0 ? (attuale - carico) / carico : 0);
+
+      const investito = carico * qty;
+      totValore += valore;
+      totInvestito += investito;
+      totPnl += pnl;
+
+      return { ticker, nome, qty, carico, attuale, valore, pnl, pnlPct, investito };
+    });
+
+    const totPnlPct = totInvestito > 0 ? totPnl / totInvestito : 0;
+
+    // Aggiorna KPI
+    document.getElementById('kpi-valore').textContent = fmtEur(totValore);
+    document.getElementById('kpi-valore').className = 'kpi-value positive';
+
+    const pnlEl = document.getElementById('kpi-pnl');
+    pnlEl.textContent = (totPnl >= 0 ? '+' : '') + fmtEur(totPnl);
+    pnlEl.className = 'kpi-value ' + (totPnl >= 0 ? 'positive' : 'negative');
+
+    const pnlPctEl = document.getElementById('kpi-pnl-pct');
+    pnlPctEl.textContent = fmtPct(totPnlPct);
+    pnlPctEl.className = 'kpi-value ' + (totPnlPct >= 0 ? 'positive' : 'negative');
+
+    document.getElementById('kpi-investito').textContent = fmtEur(totInvestito);
+    document.getElementById('kpi-posizioni').textContent = tableRows.length;
+
+    // Costruisci tabella
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      `Aggiornato: ${now.toLocaleTimeString('it-IT')}`;
+
+    let html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Titolo</th>
+            <th>Qty</th>
+            <th>Prezzo Carico</th>
+            <th>Prezzo Attuale</th>
+            <th>Valore €</th>
+            <th>P&L €</th>
+            <th>P&L %</th>
+            <th>Peso %</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    tableRows.forEach(r => {
+      const peso = totValore > 0 ? r.valore / totValore : 0;
+      const barW = Math.round(peso * 80);
+      const pnlClass = r.pnl >= 0 ? 'positive' : 'negative';
+      const pctClass = r.pnlPct >= 0 ? 'pos' : 'neg';
+
+      html += `
+        <tr>
+          <td>
+            <div class="ticker-cell">
+              <div class="ticker-badge">${r.ticker}</div>
+              <div class="ticker-name">${r.nome}</div>
+            </div>
+          </td>
+          <td class="neutral">${r.qty}</td>
+          <td class="neutral">${fmtEur(r.carico)}</td>
+          <td class="${pnlClass}">${fmtEur(r.attuale)}</td>
+          <td class="positive">${fmtEur(r.valore)}</td>
+          <td class="${pnlClass}">${(r.pnl >= 0 ? '+' : '') + fmtEur(r.pnl)}</td>
+          <td><span class="pct-badge ${pctClass}">${fmtPct(r.pnlPct)}</span></td>
+          <td>
+            <div class="weight-bar-wrap">
+              <span class="neutral">${fmt(peso * 100, 1)}%</span>
+              <div class="weight-bar fill" style="width:${barW}px"></div>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    // Riga totale
+    const totClass = totPnl >= 0 ? 'positive' : 'negative';
+    html += `
+        <tr class="total-row">
+          <td>TOTALE PORTAFOGLIO</td>
+          <td>—</td>
+          <td>${fmtEur(totInvestito / (tableRows.length || 1))}</td>
+          <td>—</td>
+          <td>${fmtEur(totValore)}</td>
+          <td class="${totClass}">${(totPnl >= 0 ? '+' : '') + fmtEur(totPnl)}</td>
+          <td><span class="pct-badge ${totPnl >= 0 ? 'pos' : 'neg'}">${fmtPct(totPnlPct)}</span></td>
+          <td>100%</td>
+        </tr>
+      </tbody>
+    </table>`;
+
+    document.getElementById('table-container').innerHTML = html;
+
+  } catch(e) {
+    document.getElementById('table-container').innerHTML =
+      `<div class="error-box">⚠ ERRORE CARICAMENTO DATI — ${e.message}<br><br>
+      Verifica che il Google Sheet sia pubblico (Condividi → Chiunque abbia il link).</div>`;
+    document.getElementById('last-update').textContent = 'Errore caricamento';
+  }
+}
+
+// Orologio
+function updateClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('it-IT');
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Auto-refresh ogni 5 minuti
+setInterval(loadData, 300000);
+
+// Load iniziale
+loadData();
+</script>
+</body>
+</html>
