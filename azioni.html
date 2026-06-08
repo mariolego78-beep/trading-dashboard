@@ -717,7 +717,6 @@ setInterval(loadData, 300000);
 
 // Load iniziale
 loadData();
-loadMonthly();
 
 const GID_MENSILE = '1864162308';
 const CSV_MENSILE = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_MENSILE}`;
@@ -830,6 +829,8 @@ async function loadMonthly() {
     document.getElementById('chart-meta').textContent = 'Errore: ' + e.message;
   }
 }
+
+loadMonthly();
 </script>
 </body>
 </html>
