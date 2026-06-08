@@ -735,35 +735,34 @@ async function loadMonthly() {
     }
     if (!csv) throw new Error('Dati non disponibili');
 
-    const rows = parseCSV(csv);
-    // Columns: anno, mese, trade chiusi, win, loss, win rate%, p&l mese, versamenti, saldo fine mese
+    // Monthly sheet has title in row 1, headers in row 2, data from row 3
+    const lines = csv.trim().split('\n');
+    // Skip row 0 (title), use row 1 as headers
+    const sep = lines[1].includes(';') ? ';' : ',';
+    
     const labels = [];
     const values = [];
     const colors = [];
 
-    const mesiIt = ['','Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+    // Parse data rows starting from index 2
+    for (let i = 2; i < lines.length; i++) {
+      const cols = lines[i].split(sep).map(c => c.replace(/"/g, '').trim());
+      if (!cols[0]) continue;
+      
+      const anno = cols[0];
+      const mese = cols[1];
+      // P&L is column G = index 6
+      const pl = parseNum(cols[6]);
 
-    rows.forEach(r => {
-      const keys = Object.keys(r);
-      // Anno e mese nelle prime due colonne
-      const anno = r[keys[0]];
-      const mese = r[keys[1]];
-      // P&L mensile — cerca colonna con "p&l" o "pl" o index 6
-      const plKey = keys.find(k => k.includes('p&l') || k.includes('pl') || k.includes('mese')) || keys[6];
-      const pl = parseNum(r[plKey]);
+      if (!anno || !mese) continue;
+      if (anno.toUpperCase().includes('TOT') || mese.toUpperCase().includes('TOT')) continue;
 
-      if (!anno || !mese) return;
-      // Skip TOTALE row
-      if (String(anno).toUpperCase().includes('TOT')) return;
-
-      // Label: Apr 25, Mag 25, ecc.
-      const meseNum = mesiIt.indexOf(mese);
       const shortMese = mese.substring(0, 3);
       const shortAnno = String(anno).slice(-2);
-      labels.push(`${shortMese} ${shortAnno}`);
+      labels.push(`${shortMese} '${shortAnno}`);
       values.push(pl);
       colors.push(pl >= 0 ? 'rgba(0,255,65,0.7)' : 'rgba(255,59,59,0.7)');
-    });
+    }
 
     if (!labels.length) throw new Error('Nessun dato mensile trovato');
 
