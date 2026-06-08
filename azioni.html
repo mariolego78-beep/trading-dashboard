@@ -843,13 +843,13 @@ async function loadMonthly() {
     document.getElementById('chart-meta').textContent = 'Errore: ' + e.message;
   }
 }
+
 const CSV_TRADELOG = `https://docs.google.com/spreadsheets/d/e/2PACX-1vQz-snYzb4JHu0C1UW1c43lS2yGhXibdfp0k8EE04DROS204Gj5iqVFgm1I6MVGog/pub?gid=286180081&single=true&output=csv`;
+
 let tickerChart = null;
 
 loadMonthly();
 loadTickerChart();
-
-
 
 async function loadTickerChart() {
   document.getElementById('ticker-chart-meta').textContent = 'Caricamento...';
