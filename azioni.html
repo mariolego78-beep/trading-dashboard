@@ -475,6 +475,18 @@
     </div>
   </div>
 
+
+  <!-- Grafico P&L cumulativo per ticker -->
+  <div class="section" style="margin-top:20px;">
+    <div class="section-header">
+      <div class="section-title">&#9658; P&amp;L Cumulativo per Ticker — Trade Chiusi</div>
+      <div class="section-meta" id="ticker-chart-meta">Caricamento...</div>
+    </div>
+    <div style="padding: 24px; position: relative; height: 300px;">
+      <canvas id="ticker-chart"></canvas>
+    </div>
+  </div>
+
 </div>
 
 <div class="footer">
@@ -833,6 +845,133 @@ async function loadMonthly() {
 }
 
 loadMonthly();
+loadTickerChart();
+
+const GID_TRADELOG = '0';
+const CSV_TRADELOG = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_TRADELOG}`;
+
+let tickerChart = null;
+
+async function loadTickerChart() {
+  document.getElementById('ticker-chart-meta').textContent = 'Caricamento...';
+  try {
+    let csv = null;
+    for (const proxy of PROXIES) {
+      try {
+        const res = await fetch(proxy(CSV_TRADELOG), { cache: 'no-store' });
+        if (res.ok) { const t = await res.text(); if (t.length > 10) { csv = t; break; } }
+      } catch(e) {}
+    }
+    if (!csv) throw new Error('Dati non disponibili');
+
+    const lines = csv.trim().split('\n');
+    // Row 0 is title, row 1 is blank or subtitle, row 2 is headers - find header row
+    // Find header row containing "Ticker"
+    let headerIdx = 0;
+    for (let i = 0; i < Math.min(5, lines.length); i++) {
+      if (lines[i].toLowerCase().includes('ticker')) { headerIdx = i; break; }
+    }
+
+    const sep = lines[headerIdx].includes(';') ? ';' : ',';
+    const headers = lines[headerIdx].split(sep).map(h => h.replace(/"/g, '').trim().toLowerCase());
+
+    const tickerCol = headers.findIndex(h => h.includes('ticker'));
+    const statusCol = headers.findIndex(h => h.includes('status'));
+    const pnlCol = headers.findIndex(h => h.includes('p&l') && (h.includes('netto') || h.includes('net')));
+    // fallback: col 16 (P&L Netto) based on known structure
+    const pnlIdx = pnlCol !== -1 ? pnlCol : 16;
+    const statusIdx = statusCol !== -1 ? statusCol : 20;
+    const tickerIdx = tickerCol !== -1 ? tickerCol : 2;
+
+    // Aggregate P&L by ticker for CLOSED trades
+    const tickerMap = {};
+    for (let i = headerIdx + 1; i < lines.length; i++) {
+      const cols = lines[i].split(sep).map(c => c.replace(/"/g, '').trim());
+      if (!cols[tickerIdx]) continue;
+      const status = cols[statusIdx] || '';
+      if (!status.toUpperCase().includes('CLOSED')) continue;
+      const ticker = cols[tickerIdx].toUpperCase();
+      const pnl = parseNum(cols[pnlIdx]);
+      if (!tickerMap[ticker]) tickerMap[ticker] = 0;
+      tickerMap[ticker] += pnl;
+    }
+
+    // Sort by absolute value descending
+    const sorted = Object.entries(tickerMap)
+      .filter(([t, v]) => t && t !== 'TICKER')
+      .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+
+    if (!sorted.length) throw new Error('Nessun trade chiuso trovato');
+
+    const labels = sorted.map(([t]) => t);
+    const values = sorted.map(([, v]) => Math.round(v * 100) / 100);
+    const colors = values.map(v => v >= 0 ? 'rgba(0,255,65,0.7)' : 'rgba(255,59,59,0.7)');
+    const borders = values.map(v => v >= 0 ? 'rgba(0,255,65,1)' : 'rgba(255,59,59,1)');
+
+    const ctx = document.getElementById('ticker-chart').getContext('2d');
+    if (tickerChart) tickerChart.destroy();
+
+    tickerChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+          borderColor: borders,
+          borderWidth: 1,
+          borderRadius: 2,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0a160b',
+            borderColor: '#1a3a1a',
+            borderWidth: 1,
+            titleColor: '#5a8a5a',
+            bodyColor: '#00ff41',
+            titleFont: { family: 'IBM Plex Mono', size: 11 },
+            bodyFont: { family: 'IBM Plex Mono', size: 13, weight: '700' },
+            callbacks: {
+              label: ctx => (ctx.raw >= 0 ? '+' : '') + '€' + ctx.raw.toFixed(2)
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(26,58,26,0.4)' },
+            ticks: { color: '#5a8a5a', font: { family: 'IBM Plex Mono', size: 12 } },
+            border: { color: '#1a3a1a' }
+          },
+          y: {
+            grid: { color: 'rgba(26,58,26,0.4)' },
+            ticks: {
+              color: '#5a8a5a',
+              font: { family: 'IBM Plex Mono', size: 11 },
+              callback: v => (v >= 0 ? '+' : '') + '€' + v.toFixed(0)
+            },
+            border: { color: '#1a3a1a' }
+          }
+        }
+      }
+    });
+
+    const totPos = values.filter(v => v > 0).reduce((a, b) => a + b, 0);
+    const totNeg = values.filter(v => v < 0).reduce((a, b) => a + b, 0);
+    const best = sorted.reduce((a, b) => b[1] > a[1] ? b : a);
+    const worst = sorted.reduce((a, b) => b[1] < a[1] ? b : a);
+    document.getElementById('ticker-chart-meta').textContent =
+      `${sorted.length} ticker | Migliore: ${best[0]} +€${best[1].toFixed(2)} | Peggiore: ${worst[0]} €${worst[1].toFixed(2)}`;
+
+  } catch(e) {
+    document.getElementById('ticker-chart-meta').textContent = 'Errore: ' + e.message;
+  }
+}
+
 </script>
 </body>
 </html>
